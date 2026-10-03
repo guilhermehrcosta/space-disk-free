@@ -5,7 +5,7 @@ let package = Package(
     name: "SpaceDiskFree",
     platforms: [.macOS(.v14)],
     products: [
-        .executable(name: "SpaceDiskFree", targets: ["SpaceDiskFree"]),
+        .executable(name: "SpaceDiskFree", targets: ["SpaceDiskFree"])
     ],
     targets: [
         .target(name: "DiskCore"),

@@ -16,8 +16,8 @@ public struct VolumeStatus: Sendable, Equatable {
             .volumeAvailableCapacityForImportantUsageKey,
         ]
         guard let values = try? url.resourceValues(forKeys: keys),
-              let total = values.volumeTotalCapacity,
-              let available = values.volumeAvailableCapacityForImportantUsage
+            let total = values.volumeTotalCapacity,
+            let available = values.volumeAvailableCapacityForImportantUsage
         else { return nil }
 
         return VolumeStatus(

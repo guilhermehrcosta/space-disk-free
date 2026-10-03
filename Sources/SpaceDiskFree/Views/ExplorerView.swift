@@ -20,10 +20,14 @@ struct ExplorerView: View {
 
     private var toolbar: some View {
         HStack(spacing: 8) {
-            Button { explorer.goBack() } label: { Image(systemName: "chevron.left") }
-                .buttonStyle(.borderless)
-                .disabled(!explorer.canGoBack)
-                .help("Voltar")
+            Button {
+                explorer.goBack()
+            } label: {
+                Image(systemName: "chevron.left")
+            }
+            .buttonStyle(.borderless)
+            .disabled(!explorer.canGoBack)
+            .help("Voltar")
 
             VStack(alignment: .leading, spacing: 0) {
                 Text(explorer.current.lastPathComponent.isEmpty ? "/" : explorer.current.lastPathComponent)
@@ -92,8 +96,7 @@ private struct FileRow: View {
     @Environment(AppState.self) private var state
     let node: FileNode
     let largest: UInt64
-
-    private var isHovering: Bool { state.explorer.hoveredNode == node.id }
+    @State private var isHovering = false
 
     private var fraction: Double {
         guard let size = node.size, largest > 0 else { return 0 }
@@ -119,12 +122,20 @@ private struct FileRow: View {
             }
 
             if isHovering {
-                Button { state.reveal(node.url) } label: { Image(systemName: "magnifyingglass") }
-                    .buttonStyle(.borderless)
-                    .help("Mostrar no Finder")
-                Button { state.requestTrash(node) } label: { Image(systemName: "trash") }
-                    .buttonStyle(.borderless)
-                    .help("Mover para a Lixeira")
+                Button {
+                    state.reveal(node.url)
+                } label: {
+                    Image(systemName: "magnifyingglass")
+                }
+                .buttonStyle(.borderless)
+                .help("Mostrar no Finder")
+                Button {
+                    state.requestTrash(node)
+                } label: {
+                    Image(systemName: "trash")
+                }
+                .buttonStyle(.borderless)
+                .help("Mover para a Lixeira")
             }
 
             Group {
@@ -147,13 +158,7 @@ private struct FileRow: View {
         .background(isHovering ? Color.primary.opacity(0.06) : .clear, in: RoundedRectangle(cornerRadius: 6))
         .padding(.horizontal, 4)
         .contentShape(Rectangle())
-        .onHover { hovering in
-            if hovering {
-                state.explorer.hoveredNode = node.id
-            } else if isHovering {
-                state.explorer.hoveredNode = nil
-            }
-        }
+        .onHover { isHovering = $0 }
         .onTapGesture { state.explorer.enter(node) }
         .contextMenu {
             if node.canEnter {

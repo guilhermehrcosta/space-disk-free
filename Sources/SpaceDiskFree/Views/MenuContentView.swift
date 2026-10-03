@@ -1,15 +1,22 @@
 import SwiftUI
 
 struct MenuContentView: View {
+    enum Tab: String, CaseIterable, Identifiable {
+        case cleanup = "Limpeza"
+        case explore = "Explorar"
+        var id: Self { self }
+    }
+
     @Environment(AppState.self) private var state
+    @State private var tab: Tab = .cleanup
 
     var body: some View {
         VStack(spacing: 0) {
             DiskHeaderView()
                 .padding(16)
 
-            Picker("Seção", selection: Bindable(state).selectedTab) {
-                ForEach(AppState.Tab.allCases) { Text($0.rawValue).tag($0) }
+            Picker("Seção", selection: $tab) {
+                ForEach(Tab.allCases) { Text($0.rawValue).tag($0) }
             }
             .pickerStyle(.segmented)
             .labelsHidden()
@@ -25,11 +32,11 @@ struct MenuContentView: View {
             Divider()
 
             Group {
-                switch state.selectedTab {
+                switch tab {
                 case .cleanup:
                     CleanupListView { url in
                         state.explorer.open(url)
-                        state.selectedTab = .explore
+                        tab = .explore
                     }
                 case .explore:
                     ExplorerView()
@@ -91,10 +98,12 @@ private struct FooterView: View {
         HStack {
             Menu {
                 Toggle("Mostrar espaço livre na barra de menus", isOn: $showFreeSpace)
-                Toggle("Abrir ao iniciar sessão", isOn: Binding(
-                    get: { state.launchAtLogin },
-                    set: { state.setLaunchAtLogin($0) }
-                ))
+                Toggle(
+                    "Abrir ao iniciar sessão",
+                    isOn: Binding(
+                        get: { state.launchAtLogin },
+                        set: { state.setLaunchAtLogin($0) }
+                    ))
                 Divider()
                 Button("Acesso Total ao Disco…") { state.openFullDiskAccessSettings() }
             } label: {

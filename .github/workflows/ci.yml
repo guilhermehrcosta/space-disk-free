@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["**.md"]
+  pull_request:
+    paths-ignore: ["**.md"]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # swift-format não compila o código, então roda em Linux (minutos macOS custam 10x).
+  lint:
+    runs-on: ubuntu-latest
+    container: swift:6.4  # mesma versão do swift-format usado localmente
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift format lint --strict --recursive --parallel Package.swift Sources Tests
+
+  test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: .build
+          key: spm-${{ runner.os }}-${{ hashFiles('Package.swift', 'Package.resolved') }}
+      - run: swift test
+      - run: ./Scripts/build-app.sh

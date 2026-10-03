@@ -7,25 +7,25 @@ Space Disk Free is a macOS 14+ menu bar app (SwiftUI `MenuBarExtra`, `LSUIElemen
 ## Commands
 
 ```sh
-make app       # release build + bundle -> "build/Space Disk Free.app" (ad-hoc signed)
+make app       # release build + bundle -> "build/Space Disk Free.app" (ad-hoc signed, host arch)
 make run       # app + kill running instance + open
 make install   # copy to /Applications and open
+make dmg       # universal (arm64 + x86_64) app -> build/SpaceDiskFree-<version>.dmg, same as the release workflow
 make test      # swift test (Swift Testing)
+make lint      # swift format lint --strict (config: .swift-format); CI fails on any finding
+make format    # swift format in place — run before committing
 make clean
 
-# Run one suite or test (same flags `make test` passes):
-F=/Library/Developer/CommandLineTools/Library/Developer/Frameworks
-swift test --build-system native -Xswiftc -F -Xswiftc $F -Xlinker -F -Xlinker $F -Xlinker -rpath -Xlinker $F --filter SafetyPolicyTests
+swift test --filter SafetyPolicyTests   # one suite or test
 ```
 
-There is no linter configured.
+Requires Xcode selected (`xcode-select -p` → Xcode.app). With only the Command Line Tools, the `Makefile` and `Scripts/build-app.sh` fall back to `--build-system native` and pass the Swift Testing framework paths, but SwiftUI's `@State` won't compile: its macro plugin only ships with Xcode.
 
-### Toolchain constraints (Command Line Tools only, no Xcode yet)
+## CI / release
 
-- Plain `swift build` fails with "Unknown error parsing property list". The default Swift Build backend doesn't initialize without Xcode, so always pass `--build-system native`. `Scripts/build-app.sh` and the `Makefile` already do this.
-- **Don't use `@State` in SwiftUI.** On the macOS 27 SDK it's a macro whose plugin (`SwiftUIMacros`) only ships with Xcode. View-local state lives on the `@Observable` models instead, for example `AppState.selectedTab` and `ExplorerModel.hoveredNode`. `@Observable`, `@Environment` and `@AppStorage` work fine.
-- The Swift Testing framework isn't on the default search path, so tests need the `-F`/`-rpath` flags above.
-- Xcode is being installed. Once `xcode-select -p` points to Xcode.app, these workarounds can be removed and `@State` brought back.
+- `.github/workflows/ci.yml`: lint runs on Ubuntu in the `swift:6.4` container (cheap minutes; keep it on the same Swift version as local so `swift format` agrees). Tests and an app build run on `macos-15`. The repo is private, and macOS minutes count 10×, so keep the trigger filters (`paths-ignore`, `concurrency`).
+- `.github/workflows/release.yml`: publishing a GitHub release tagged `vX.Y.Z` runs tests, builds the universal app with `VERSION` taken from the tag and `BUILD_NUMBER` = run number, then attaches the `.dmg` to the release. There is no Developer ID or notarization (ad-hoc signature), so users have to approve the app once in Privacy & Security.
+- `build-app.sh` builds each arch separately and merges them with `lipo`. Each slice is copied right after its build because the Xcode build backend uses the same output dir for every arch.
 
 ## Architecture
 
@@ -44,9 +44,9 @@ There are two SwiftPM targets, and the split is deliberate:
 
   Only categories whose paths exist are shown. `countsTowardReclaimable` keeps command and review categories out of the "recuperável" total, because their sizes overlap other categories or can't be fully freed.
 - **Safety.** `Cleaner.run` checks every category path against `SafetyPolicy.canClearContents`, which resolves symlinks and requires the path to be strictly inside home and not on a protected list. Explorer deletions go through `SafetyPolicy.canTrash` and always go to the Trash, never a permanent delete. Any new category or delete path must pass this policy. The `defaultCategoriesAreAllAllowedByPolicy` test enforces this for the catalog.
-- **App state.** `AppState` (`@MainActor @Observable`) owns per-category status, the confirmation dialog, toasts and launch-at-login (`SMAppService`). The `App` struct holds it as a plain `let`. Every destructive action goes through `pendingConfirmation`, an in-window overlay, instead of `NSAlert`: an alert steals focus and closes the `MenuBarExtra` window. `ExplorerModel` lists a directory with `DirectoryLister`, then measures subdirectories with at most 4 in flight, re-sorting by size as results arrive. Packages (`.app` etc.) count as leaves.
+- **App state.** `AppState` (`@MainActor @Observable`) owns per-category status, the confirmation dialog, toasts and launch-at-login (`SMAppService`). Every destructive action goes through `pendingConfirmation`, an in-window overlay, instead of `NSAlert`: an alert steals focus and closes the `MenuBarExtra` window. `ExplorerModel` lists a directory with `DirectoryLister`, then measures subdirectories with at most 4 in flight, re-sorting by size as results arrive. Packages (`.app` etc.) count as leaves.
 - **Empty Trash fallback.** Without Full Disk Access, `~/.Trash` can't be read. `Cleaner` then empties it through Finder AppleScript (`osascript`), which is why `Resources/Info.plist` has `NSAppleEventsUsageDescription`.
 
 ### Packaging
 
-`Resources/Info.plist` is copied in by `Scripts/build-app.sh`; SwiftPM doesn't process it. The app isn't sandboxed because it has to read the whole home folder. The build is arm64-only with an ad-hoc signature, so TCC permissions may reset on each rebuild. Distributing to other people needs a universal binary plus Developer ID signing and notarization, which isn't set up yet.
+`Resources/Info.plist` is copied in by `Scripts/build-app.sh`; SwiftPM doesn't process it. The app isn't sandboxed because it has to read the whole home folder. The ad-hoc signature changes on every build, so TCC permissions (Full Disk Access) may need to be granted again after rebuilding.

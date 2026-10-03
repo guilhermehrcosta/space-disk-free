@@ -13,12 +13,6 @@ final class AppState {
         var permissionDenied = false
     }
 
-    enum Tab: String, CaseIterable, Identifiable {
-        case cleanup = "Limpeza"
-        case explore = "Explorar"
-        var id: Self { self }
-    }
-
     struct Confirmation: Identifiable {
         let id = UUID()
         let title: String
@@ -39,7 +33,6 @@ final class AppState {
     private(set) var toast: String?
     private(set) var launchAtLogin = SMAppService.mainApp.status == .enabled
     var pendingConfirmation: Confirmation?
-    var selectedTab: Tab = .cleanup
 
     private var scanTask: Task<Void, Never>?
     private var toastTask: Task<Void, Never>?
@@ -121,18 +114,19 @@ final class AppState {
 
     func requestCleanup(_ category: CleanupCategory) {
         let size = status[category.id]?.size?.formattedBytes ?? "?"
-        let (message, confirmTitle, destructive): (String, String, Bool) = switch category.strategy {
-        case .deleteContents:
-            ("\(size) serão apagados permanentemente.\n\(category.detail)", "Apagar", true)
-        case .trashContents:
-            ("\(size) serão movidos para a Lixeira.", "Mover para Lixeira", false)
-        case .emptyTrash:
-            ("\(size) serão apagados permanentemente. Não é possível desfazer.", "Esvaziar", true)
-        case .command(let command):
-            ("Será executado:\n\(command)\n\n\(category.detail)", "Executar", true)
-        case .review:
-            ("", "", false)
-        }
+        let (message, confirmTitle, destructive): (String, String, Bool) =
+            switch category.strategy {
+            case .deleteContents:
+                ("\(size) serão apagados permanentemente.\n\(category.detail)", "Apagar", true)
+            case .trashContents:
+                ("\(size) serão movidos para a Lixeira.", "Mover para Lixeira", false)
+            case .emptyTrash:
+                ("\(size) serão apagados permanentemente. Não é possível desfazer.", "Esvaziar", true)
+            case .command(let command):
+                ("Será executado:\n\(command)\n\n\(category.detail)", "Executar", true)
+            case .review:
+                ("", "", false)
+            }
         if case .review = category.strategy { return }
 
         pendingConfirmation = Confirmation(
@@ -160,7 +154,8 @@ final class AppState {
 
     private static func summary(of report: CleanupReport, category: CleanupCategory) -> String {
         if let error = report.commandError { return "\(category.title): \(error)" }
-        var text = report.movedToTrash
+        var text =
+            report.movedToTrash
             ? "\(report.reclaimedBytes.formattedBytes) movidos para a Lixeira"
             : "\(report.reclaimedBytes.formattedBytes) liberados em \(category.title)"
         if !report.failures.isEmpty {

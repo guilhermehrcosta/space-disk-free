@@ -8,14 +8,31 @@ App de barra de menus para macOS que mostra onde o espaço em disco está sendo 
 
 Requer macOS 14+.
 
+## Instalar
+
+Baixe o `SpaceDiskFree-<versão>.dmg` em **Releases**, abra-o e arraste o app para **Aplicativos**.
+
+O app não é assinado com Developer ID, então o macOS bloqueia a primeira abertura. Para liberar, tente abrir o app uma vez, vá em **Ajustes do Sistema › Privacidade e Segurança** e clique em **Abrir Mesmo Assim**. Também dá para liberar pelo Terminal:
+
+```sh
+xattr -dr com.apple.quarantine "/Applications/Space Disk Free.app"
+```
+
+## Publicar uma versão
+
+No GitHub, crie um release com uma tag `vX.Y.Z` e publique. A action [release.yml](.github/workflows/release.yml) roda os testes, gera o `.dmg` universal (Apple Silicon e Intel) e anexa ao release.
+
 ## Compilar e rodar
 
-Funciona só com as Command Line Tools (o Xcode não é necessário).
+Requer o Xcode.
 
 ```sh
 make run       # compila e abre build/Space Disk Free.app
 make install   # copia para /Applications e abre
+make dmg       # gera build/SpaceDiskFree-<versão>.dmg universal
 make test      # testes do DiskCore (Swift Testing)
+make lint      # swift format lint (o CI usa o mesmo)
+make format    # formata o código
 ```
 
 ## Arquitetura
@@ -55,4 +72,4 @@ Sources/
 
 O app não usa sandbox, já que precisa ler a home inteira. Sem **Acesso Total ao Disco**, o macOS bloqueia algumas pastas (Mail, Safari, containers de outros apps, `~/.Trash`). Nesse caso o app mostra um aviso com atalho para *Ajustes do Sistema › Privacidade e Segurança › Acesso Total ao Disco*.
 
-> A assinatura é ad-hoc. Cada recompilação gera uma nova identidade, e o macOS pode pedir as permissões de novo. Para distribuir, assine com um Developer ID e faça a notarização.
+> A assinatura é ad-hoc. Cada recompilação gera uma nova identidade, e o macOS pode pedir as permissões de novo.

@@ -11,7 +11,6 @@ final class ExplorerModel {
     private(set) var isLoading = false
     private(set) var errorMessage: String?
     private(set) var permissionDenied = false
-    var hoveredNode: FileNode.ID?
     private var history: [URL] = []
     private var loadTask: Task<Void, Never>?
     private var hasLoaded = false
@@ -84,7 +83,8 @@ final class ExplorerModel {
             } catch {
                 guard !Task.isCancelled else { return }
                 let code = (error as NSError).underlyingErrors.first.map { ($0 as NSError).code }
-                permissionDenied = [Int(EPERM), Int(EACCES)].contains(code)
+                permissionDenied =
+                    [Int(EPERM), Int(EACCES)].contains(code)
                     || (error as NSError).code == NSFileReadNoPermissionError
                 errorMessage = permissionDenied ? "Sem permissão para ler esta pasta." : error.localizedDescription
             }

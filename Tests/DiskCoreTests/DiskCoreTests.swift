@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import DiskCore
 
 struct SizeCalculatorTests {
@@ -26,7 +27,10 @@ struct SizeCalculatorTests {
 struct SafetyPolicyTests {
     let policy = SafetyPolicy(home: URL(filePath: "/Users/teste"))
 
-    @Test(arguments: ["/Users/teste", "/Users/teste/Library", "/Users/teste/Documents", "/Users/teste/Library/Application Support", "/Users/teste/Library/Caches/../Containers"])
+    @Test(arguments: [
+        "/Users/teste", "/Users/teste/Library", "/Users/teste/Documents", "/Users/teste/Library/Application Support",
+        "/Users/teste/Library/Caches/../Containers",
+    ])
     func neverClearsCriticalFolders(path: String) {
         #expect(!policy.canClearContents(of: URL(filePath: path)))
     }

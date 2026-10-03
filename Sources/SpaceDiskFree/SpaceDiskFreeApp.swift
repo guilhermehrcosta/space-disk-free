@@ -5,8 +5,7 @@ import SwiftUI
 @main
 struct SpaceDiskFreeApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    // O App é instanciado uma única vez; @State (macro) exige o Xcode completo para compilar.
-    private let state = AppState()
+    @State private var state = AppState()
     @AppStorage("showFreeSpaceInMenuBar") private var showFreeSpace = true
 
     var body: some Scene {

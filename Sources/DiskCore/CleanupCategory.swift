@@ -111,7 +111,8 @@ extension CleanupCategory {
                 title: "Caches de desenvolvimento",
                 detail: "npm, pnpm, Gradle, Cargo e Maven. Baixados de novo sob demanda.",
                 symbol: "chevron.left.forwardslash.chevron.right",
-                paths: [".npm/_cacache", "Library/pnpm/store", ".pnpm-store", ".gradle/caches", ".cargo/registry/cache", ".m2/repository"].map(h),
+                paths: [".npm/_cacache", "Library/pnpm/store", ".pnpm-store", ".gradle/caches", ".cargo/registry/cache", ".m2/repository"]
+                    .map(h),
                 strategy: .deleteContents
             ),
             CleanupCategory(
