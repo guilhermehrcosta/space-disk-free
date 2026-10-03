@@ -17,14 +17,14 @@ jobs:
     runs-on: ubuntu-latest
     container: swift:6.4  # mesma versão do swift-format usado localmente
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: swift format lint --strict --recursive --parallel Package.swift Sources Tests
 
   test:
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
+      - uses: actions/checkout@v7
+      - uses: actions/cache@v6
         with:
           path: .build
           key: spm-${{ runner.os }}-${{ hashFiles('Package.swift', 'Package.resolved') }}
