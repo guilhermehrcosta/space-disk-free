@@ -3,12 +3,18 @@ name: Release
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to publish to the Homebrew tap
+        required: true
 
 permissions:
   contents: write
 
 jobs:
   dmg:
+    if: github.event_name == 'release'
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v7
@@ -23,3 +29,20 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "$GITHUB_REF_NAME" build/*.dmg --clobber
+
+  homebrew:
+    needs: dmg
+    if: always() && (github.event_name == 'workflow_dispatch' || (needs.dmg.result == 'success' && !github.event.release.prerelease))
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Download DMG from release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download "$TAG" --pattern '*.dmg' --dir dist
+      - name: Update Homebrew tap
+        env:
+          TAP_DEPLOY_KEY: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}
+        run: ./Scripts/update-homebrew-tap.sh "$TAG" dist/*.dmg
