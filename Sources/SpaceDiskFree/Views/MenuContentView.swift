@@ -1,10 +1,9 @@
 import SwiftUI
 
 struct MenuContentView: View {
-    enum Tab: String, CaseIterable, Identifiable {
-        case cleanup = "Limpeza"
-        case explore = "Explorar"
-        var id: Self { self }
+    enum Tab {
+        case cleanup
+        case explore
     }
 
     @Environment(AppState.self) private var state
@@ -15,8 +14,9 @@ struct MenuContentView: View {
             DiskHeaderView()
                 .padding(16)
 
-            Picker("Seção", selection: $tab) {
-                ForEach(Tab.allCases) { Text($0.rawValue).tag($0) }
+            Picker("Section", selection: $tab) {
+                Text("Cleanup").tag(Tab.cleanup)
+                Text("Explore").tag(Tab.explore)
             }
             .pickerStyle(.segmented)
             .labelsHidden()
@@ -75,14 +75,14 @@ private struct FullDiskAccessBanner: View {
             Image(systemName: "lock.shield")
                 .foregroundStyle(.orange)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Algumas pastas não puderam ser lidas")
+                Text("Some folders couldn't be read")
                     .font(.callout.weight(.medium))
-                Text("Conceda Acesso Total ao Disco para medir tudo com precisão.")
+                Text("Grant Full Disk Access to measure everything accurately.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
-            Button("Abrir Ajustes") { state.openFullDiskAccessSettings() }
+            Button("Open Settings") { state.openFullDiskAccessSettings() }
                 .controlSize(.small)
         }
         .padding(10)
@@ -97,15 +97,15 @@ private struct FooterView: View {
     var body: some View {
         HStack {
             Menu {
-                Toggle("Mostrar espaço livre na barra de menus", isOn: $showFreeSpace)
+                Toggle("Show free space in the menu bar", isOn: $showFreeSpace)
                 Toggle(
-                    "Abrir ao iniciar sessão",
+                    "Open at login",
                     isOn: Binding(
                         get: { state.launchAtLogin },
                         set: { state.setLaunchAtLogin($0) }
                     ))
                 Divider()
-                Button("Acesso Total ao Disco…") { state.openFullDiskAccessSettings() }
+                Button("Full Disk Access…") { state.openFullDiskAccessSettings() }
             } label: {
                 Image(systemName: "gearshape")
             }
@@ -115,7 +115,7 @@ private struct FooterView: View {
 
             Spacer()
 
-            Button("Sair") { NSApp.terminate(nil) }
+            Button("Quit") { NSApp.terminate(nil) }
                 .keyboardShortcut("q")
         }
         .padding(.horizontal, 16)
@@ -157,7 +157,7 @@ private struct ConfirmationOverlay: View {
                     .fixedSize(horizontal: false, vertical: true)
                 HStack {
                     Spacer()
-                    Button("Cancelar", role: .cancel) { state.pendingConfirmation = nil }
+                    Button("Cancel", role: .cancel) { state.pendingConfirmation = nil }
                         .keyboardShortcut(.cancelAction)
                     Button(confirmation.confirmTitle, role: confirmation.isDestructive ? .destructive : nil) {
                         state.pendingConfirmation = nil

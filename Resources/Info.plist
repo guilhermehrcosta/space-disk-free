@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>pt-BR</string>
+	<string>en</string>
 	<key>CFBundleDisplayName</key>
 	<string>Space Disk Free</string>
 	<key>CFBundleExecutable</key>
@@ -14,6 +14,11 @@
 	<string>com.guilhermecosta.SpaceDiskFree</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>pt-BR</string>
+	</array>
 	<key>CFBundleName</key>
 	<string>Space Disk Free</string>
 	<key>CFBundlePackageType</key>
@@ -29,7 +34,7 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>Usado para pedir ao Finder que esvazie a Lixeira quando o app não tem Acesso Total ao Disco.</string>
+	<string>Used to ask Finder to empty the Trash when the app doesn't have Full Disk Access.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2026 Guilherme Costa</string>
 </dict>

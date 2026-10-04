@@ -17,7 +17,7 @@ A macOS menu bar app that shows where your disk space is going and cleans it up 
   - iPhone/iPad backups and Downloads (review only)
 - **Explore tab**: the largest folders in your home, the whole disk, or any folder you pick. You can drill down level by level, reveal items in Finder or move them to the Trash. Sizes are cached, so going back is instant.
 
-Requires macOS 14 or later. The interface is in Brazilian Portuguese.
+Requires macOS 14 or later. Available in English and Brazilian Portuguese. The app follows the system language, and you can also pick a language just for this app in *System Settings › General › Language & Region › Applications*.
 
 ## Install
 
@@ -52,6 +52,7 @@ make test      # DiskCore tests (Swift Testing)
 make lint      # swift format lint, same as CI
 make format    # format the code
 make icon      # redraw Resources/AppIcon.icns from Scripts/make-icon.swift
+make strings   # sync Resources/Localizable.xcstrings with the strings in the code
 ```
 
 The ad-hoc signature changes on every build, so macOS may ask for Full Disk Access again after rebuilding.

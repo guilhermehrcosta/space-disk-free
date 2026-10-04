@@ -1,0 +1,938 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "%@ available": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ disponíveis"
+          }
+        }
+      }
+    },
+    "%@ freed in %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ freed in %2$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ liberados em %2$@"
+          }
+        }
+      }
+    },
+    "%@ is a protected folder and can't be removed.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ é uma pasta protegida e não pode ser removida."
+          }
+        }
+      }
+    },
+    "%@ moved to the Trash": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ movidos para a Lixeira"
+          }
+        }
+      }
+    },
+    "%@ reclaimable": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ recuperáveis"
+          }
+        }
+      }
+    },
+    "%@ will be moved to the Trash.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ serão movidos para a Lixeira."
+          }
+        }
+      }
+    },
+    "%@ will be permanently deleted.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ serão apagados permanentemente."
+          }
+        }
+      }
+    },
+    "%@ will be permanently deleted. This can't be undone.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ serão apagados permanentemente. Não é possível desfazer."
+          }
+        }
+      }
+    },
+    "%lld items in use or protected were kept": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld itens em uso ou protegidos foram mantidos"
+          }
+        }
+      }
+    },
+    "Also removes every image no container uses (downloaded again when needed) and the whole build cache. Volumes are kept.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Também remove todas as imagens que nenhum container usa (serão baixadas de novo) e todo o cache de build. Volumes são mantidos."
+          }
+        }
+      }
+    },
+    "Analyze": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analisar"
+          }
+        }
+      }
+    },
+    "Analyze again": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analisar novamente"
+          }
+        }
+      }
+    },
+    "Android emulator images (%lld installed). They can be downloaded again from the SDK Manager.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imagens dos emuladores Android (%lld instaladas). Podem ser baixadas de novo pelo SDK Manager."
+          }
+        }
+      }
+    },
+    "Android: system images": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Android: imagens de sistema"
+          }
+        }
+      }
+    },
+    "App caches": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caches de apps"
+          }
+        }
+      }
+    },
+    "Applications": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplicativos"
+          }
+        }
+      }
+    },
+    "Archived builds, including dSYMs. They go to the Trash, so review them before emptying it.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Builds arquivados (incluem dSYMs). Vão para a Lixeira, então revise antes de esvaziar."
+          }
+        }
+      }
+    },
+    "Back": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voltar"
+          }
+        }
+      }
+    },
+    "Blocked for safety: %@": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Operação bloqueada por segurança: %@"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
+          }
+        }
+      }
+    },
+    "Choose a location to analyze": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolher local para analisar"
+          }
+        }
+      }
+    },
+    "Choose folder…": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolher pasta…"
+          }
+        }
+      }
+    },
+    "Choose in Explore…": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolher no Explorar…"
+          }
+        }
+      }
+    },
+    "Clean": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar"
+          }
+        }
+      }
+    },
+    "Clean %@?": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar %@?"
+          }
+        }
+      }
+    },
+    "Cleanup": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpeza"
+          }
+        }
+      }
+    },
+    "Couldn't change it: %@": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível alterar: %@"
+          }
+        }
+      }
+    },
+    "Couldn't move it: %@": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível mover: %@"
+          }
+        }
+      }
+    },
+    "Delete": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagar"
+          }
+        }
+      }
+    },
+    "Delete all images": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagar todas as imagens"
+          }
+        }
+      }
+    },
+    "Delete images without an emulator (%lld of %lld)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Delete images without an emulator (%1$lld of %2$lld)"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagar imagens sem emulador (%1$lld de %2$lld)"
+          }
+        }
+      }
+    },
+    "Delete images without an emulator (all)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagar imagens sem emulador (todas)"
+          }
+        }
+      }
+    },
+    "Deletes the data in volumes no container uses, such as databases from stopped projects. This can't be undone.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apaga os dados de volumes que nenhum container usa, como bancos de dados de projetos parados. Não dá para desfazer."
+          }
+        }
+      }
+    },
+    "Developer caches": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caches de desenvolvimento"
+          }
+        }
+      }
+    },
+    "Diagnostic logs written by apps.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registros de diagnóstico gerados por apps."
+          }
+        }
+      }
+    },
+    "Disk": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disco"
+          }
+        }
+      }
+    },
+    "Disk usage": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uso do disco"
+          }
+        }
+      }
+    },
+    "Docker Desktop (uninstalled)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Docker Desktop (desinstalado)"
+          }
+        }
+      }
+    },
+    "Downloaded files. Review the largest items.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arquivos baixados. Revise os maiores itens."
+          }
+        }
+      }
+    },
+    "Downloaded modules (~/go/pkg/mod) and the build cache. Downloaded again on demand.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Módulos baixados (~/go/pkg/mod) e cache de build. Baixados de novo sob demanda."
+          }
+        }
+      }
+    },
+    "Empty": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esvaziar"
+          }
+        }
+      }
+    },
+    "Empty folder": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pasta vazia"
+          }
+        }
+      }
+    },
+    "Entire disk": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disco inteiro"
+          }
+        }
+      }
+    },
+    "Existing emulators won't start until the image is downloaded again from the Android Studio SDK Manager.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emuladores existentes param de abrir até a imagem ser baixada de novo pelo SDK Manager do Android Studio."
+          }
+        }
+      }
+    },
+    "Explore": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explorar"
+          }
+        }
+      }
+    },
+    "Explore largest items": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explorar maiores itens"
+          }
+        }
+      }
+    },
+    "Failed (code %d).": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falhou (código %d)."
+          }
+        }
+      }
+    },
+    "Failed.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falhou."
+          }
+        }
+      }
+    },
+    "Full Disk Access…": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acesso Total ao Disco…"
+          }
+        }
+      }
+    },
+    "Full cleanup": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpeza completa"
+          }
+        }
+      }
+    },
+    "Grant Full Disk Access": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conceder Acesso Total ao Disco"
+          }
+        }
+      }
+    },
+    "Grant Full Disk Access to measure everything accurately.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conceda Acesso Total ao Disco para medir tudo com precisão."
+          }
+        }
+      }
+    },
+    "Home folder": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pasta pessoal"
+          }
+        }
+      }
+    },
+    "Intermediate build files. Xcode rebuilds them when needed.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Builds intermediários. O Xcode recompila quando precisar."
+          }
+        }
+      }
+    },
+    "Items already deleted that still take up space.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Itens já apagados que continuam ocupando espaço."
+          }
+        }
+      }
+    },
+    "Local device backups. Review them and delete the old ones.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backups locais de aparelhos. Revise e apague os antigos."
+          }
+        }
+      }
+    },
+    "Move to Trash": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover para a Lixeira"
+          }
+        }
+      }
+    },
+    "Move to Trash…": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover para a Lixeira…"
+          }
+        }
+      }
+    },
+    "Move “%@” to the Trash?": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover “%@” para a Lixeira?"
+          }
+        }
+      }
+    },
+    "No emulator (AVD) uses:": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhum emulador (AVD) usa:"
+          }
+        }
+      }
+    },
+    "No permission to read this folder.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem permissão para ler esta pasta."
+          }
+        }
+      }
+    },
+    "Old downloads and outdated versions (brew cleanup --prune=all).": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloads antigos e versões desatualizadas (brew cleanup --prune=all)."
+          }
+        }
+      }
+    },
+    "Open": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir"
+          }
+        }
+      }
+    },
+    "Open Settings": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir Ajustes"
+          }
+        }
+      }
+    },
+    "Open at login": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir ao iniciar sessão"
+          }
+        }
+      }
+    },
+    "Part of this folder couldn't be read": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parte desta pasta não pôde ser lida"
+          }
+        }
+      }
+    },
+    "Quick cleanup": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpeza rápida"
+          }
+        }
+      }
+    },
+    "Quit": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sair"
+          }
+        }
+      }
+    },
+    "Recalculate this folder": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recalcular esta pasta"
+          }
+        }
+      }
+    },
+    "Remove unused volumes…": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remover volumes sem uso…"
+          }
+        }
+      }
+    },
+    "Removes simulators for runtimes that are no longer installed (xcrun simctl delete unavailable).": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove simuladores de runtimes que não estão mais instalados (xcrun simctl delete unavailable)."
+          }
+        }
+      }
+    },
+    "Removes stopped containers, unused networks, dangling images and the build cache.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove containers parados, redes sem uso, imagens órfãs e cache de build."
+          }
+        }
+      }
+    },
+    "Run": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Executar"
+          }
+        }
+      }
+    },
+    "Section": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seção"
+          }
+        }
+      }
+    },
+    "Show %@ in Finder": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar %@ no Finder"
+          }
+        }
+      }
+    },
+    "Show free space in the menu bar": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar espaço livre na barra de menus"
+          }
+        }
+      }
+    },
+    "Show in Finder": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar no Finder"
+          }
+        }
+      }
+    },
+    "Simulators": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simuladores"
+          }
+        }
+      }
+    },
+    "Some folders couldn't be read": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Algumas pastas não puderam ser lidas"
+          }
+        }
+      }
+    },
+    "Symbols for iOS/watchOS versions of connected devices. Downloaded again when needed.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Símbolos de versões de iOS/watchOS de aparelhos conectados. Baixados de novo quando preciso."
+          }
+        }
+      }
+    },
+    "Temporary files that apps recreate automatically. Quit the apps before cleaning.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arquivos temporários recriados automaticamente. Feche os apps antes de limpar."
+          }
+        }
+      }
+    },
+    "These items will be permanently deleted.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serão apagados permanentemente."
+          }
+        }
+      }
+    },
+    "This will run:": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Será executado:"
+          }
+        }
+      }
+    },
+    "Tool not found.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ferramenta não encontrada."
+          }
+        }
+      }
+    },
+    "Trash": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lixeira"
+          }
+        }
+      }
+    },
+    "Unknown action: %@": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ação desconhecida: %@"
+          }
+        }
+      }
+    },
+    "Virtual disk (Docker.raw) from a Docker Desktop that is no longer installed, with old images and volumes.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disco virtual (Docker.raw) de um Docker Desktop que não está mais instalado, com imagens e volumes antigos."
+          }
+        }
+      }
+    },
+    "Virtual machine disks for Docker Desktop, Rancher Desktop or Colima. Cleaned by the docker CLI in the current context, so the engine must be running.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discos das VMs do Docker Desktop, Rancher Desktop ou Colima. Limpo pelo docker CLI no contexto atual, então o engine precisa estar rodando."
+          }
+        }
+      }
+    },
+    "iPhone/iPad backups": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backups de iPhone/iPad"
+          }
+        }
+      }
+    },
+    "npm, pnpm, Gradle, Cargo and Maven. Downloaded again on demand.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "npm, pnpm, Gradle, Cargo e Maven. Baixados de novo sob demanda."
+          }
+        }
+      }
+    },
+    "of %@": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "de %@"
+          }
+        }
+      }
+    },
+    "“%@” was moved to the Trash": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@” foi para a Lixeira"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

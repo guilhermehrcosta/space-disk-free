@@ -121,15 +121,15 @@ final class AppState {
         let (message, confirmTitle, destructive): (String, String, Bool) =
             switch action.strategy {
             case .deleteContents:
-                ("\(size) serão apagados permanentemente.\(extra)", "Apagar", true)
+                (String(localized: "\(size) will be permanently deleted.") + extra, String(localized: "Delete"), true)
             case .deleteItems:
-                ("Serão apagados permanentemente.\(extra)", "Apagar", true)
+                (String(localized: "These items will be permanently deleted.") + extra, String(localized: "Delete"), true)
             case .trashContents:
-                ("\(size) serão movidos para a Lixeira.", "Mover para Lixeira", false)
+                (String(localized: "\(size) will be moved to the Trash."), String(localized: "Move to Trash"), false)
             case .emptyTrash:
-                ("\(size) serão apagados permanentemente. Não é possível desfazer.", "Esvaziar", true)
+                (String(localized: "\(size) will be permanently deleted. This can't be undone."), String(localized: "Empty"), true)
             case .command(let command):
-                ("Será executado:\n\(command)\n\(extra)", "Executar", true)
+                (String(localized: "This will run:") + "\n\(command)\n\(extra)", String(localized: "Run"), true)
             case .review:
                 ("", "", false)
             }
@@ -137,7 +137,7 @@ final class AppState {
 
         let actionTitle = action.title.trimmingCharacters(in: CharacterSet(charactersIn: "…"))
         pendingConfirmation = Confirmation(
-            title: category.actions.count > 1 ? "\(category.title): \(actionTitle)?" : "Limpar \(category.title)?",
+            title: category.actions.count > 1 ? "\(category.title): \(actionTitle)?" : String(localized: "Clean \(category.title)?"),
             message: message,
             confirmTitle: confirmTitle,
             isDestructive: destructive,
@@ -174,24 +174,24 @@ final class AppState {
         }
         var text =
             report.movedToTrash
-            ? "\(report.reclaimedBytes.formattedBytes) movidos para a Lixeira"
-            : "\(report.reclaimedBytes.formattedBytes) liberados em \(category.title)"
+            ? String(localized: "\(report.reclaimedBytes.formattedBytes) moved to the Trash")
+            : String(localized: "\(report.reclaimedBytes.formattedBytes) freed in \(category.title)")
         if !report.failures.isEmpty {
-            text += " · \(report.failures.count) itens em uso ou protegidos foram mantidos"
+            text += " · " + String(localized: "\(report.failures.count) items in use or protected were kept")
         }
         return text
     }
 
     func requestTrash(_ node: FileNode) {
         guard cleaner.policy.canTrash(node.url) else {
-            showToast("\(node.name) é uma pasta protegida e não pode ser removida.")
+            showToast(String(localized: "\(node.name) is a protected folder and can't be removed."))
             return
         }
         let size = node.size?.formattedBytes ?? "?"
         pendingConfirmation = Confirmation(
-            title: "Mover “\(node.name)” para a Lixeira?",
+            title: String(localized: "Move “\(node.name)” to the Trash?"),
             message: "\(size) · \(node.url.path(percentEncoded: false).abbreviatingHome)",
-            confirmTitle: "Mover para Lixeira",
+            confirmTitle: String(localized: "Move to Trash"),
             isDestructive: false,
             action: { [weak self] in self?.performTrash(node) }
         )
@@ -201,12 +201,12 @@ final class AppState {
         do {
             try cleaner.trash(node.url)
             explorer.remove(node)
-            showToast("“\(node.name)” foi para a Lixeira")
+            showToast(String(localized: "“\(node.name)” was moved to the Trash"))
             if let trash = categories.first(where: { $0.id == "trash" }) {
                 Task { await rescan(trash) }
             }
         } catch {
-            showToast("Não foi possível mover: \(error.localizedDescription)")
+            showToast(String(localized: "Couldn't move it: \(error.localizedDescription)"))
         }
     }
 
@@ -228,7 +228,7 @@ final class AppState {
                 try SMAppService.mainApp.unregister()
             }
         } catch {
-            showToast("Não foi possível alterar: \(error.localizedDescription)")
+            showToast(String(localized: "Couldn't change it: \(error.localizedDescription)"))
         }
         launchAtLogin = SMAppService.mainApp.status == .enabled
     }

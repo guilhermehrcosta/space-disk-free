@@ -27,7 +27,7 @@ struct ExplorerView: View {
             }
             .buttonStyle(.borderless)
             .disabled(!explorer.canGoBack)
-            .help("Voltar")
+            .help("Back")
 
             VStack(alignment: .leading, spacing: 0) {
                 Text(explorer.current.lastPathComponent.isEmpty ? "/" : explorer.current.lastPathComponent)
@@ -66,22 +66,22 @@ struct ExplorerView: View {
                     Image(systemName: "arrow.clockwise")
                 }
                 .buttonStyle(.borderless)
-                .help("Recalcular esta pasta")
+                .help("Recalculate this folder")
             }
 
             Menu {
-                Button("Pasta pessoal") { explorer.open(state.home) }
-                Button("Disco inteiro") { explorer.open(URL(filePath: "/")) }
-                Button("Aplicativos") { explorer.open(URL(filePath: "/Applications")) }
+                Button("Home folder") { explorer.open(state.home) }
+                Button("Entire disk") { explorer.open(URL(filePath: "/")) }
+                Button("Applications") { explorer.open(URL(filePath: "/Applications")) }
                 Divider()
-                Button("Escolher pasta…") { explorer.chooseFolder() }
+                Button("Choose folder…") { explorer.chooseFolder() }
             } label: {
                 Image(systemName: "folder.badge.gearshape")
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
             .fixedSize()
-            .help("Escolher local para analisar")
+            .help("Choose a location to analyze")
         }
     }
 
@@ -92,11 +92,11 @@ struct ExplorerView: View {
                 Label(error, systemImage: "exclamationmark.lock")
             } actions: {
                 if explorer.permissionDenied {
-                    Button("Conceder Acesso Total ao Disco") { state.openFullDiskAccessSettings() }
+                    Button("Grant Full Disk Access") { state.openFullDiskAccessSettings() }
                 }
             }
         } else if explorer.nodes.isEmpty, !explorer.isLoading {
-            ContentUnavailableView("Pasta vazia", systemImage: "folder")
+            ContentUnavailableView("Empty folder", systemImage: "folder")
         } else {
             ScrollView {
                 LazyVStack(spacing: 0) {
@@ -146,14 +146,14 @@ private struct FileRow: View {
                     Image(systemName: "magnifyingglass")
                 }
                 .buttonStyle(.borderless)
-                .help("Mostrar no Finder")
+                .help("Show in Finder")
                 Button {
                     state.requestTrash(node)
                 } label: {
                     Image(systemName: "trash")
                 }
                 .buttonStyle(.borderless)
-                .help("Mover para a Lixeira")
+                .help("Move to Trash")
             }
 
             Group {
@@ -180,11 +180,11 @@ private struct FileRow: View {
         .onTapGesture { state.explorer.enter(node) }
         .contextMenu {
             if node.canEnter {
-                Button("Abrir") { state.explorer.enter(node) }
+                Button("Open") { state.explorer.enter(node) }
             }
-            Button("Mostrar no Finder") { state.reveal(node.url) }
+            Button("Show in Finder") { state.reveal(node.url) }
             Divider()
-            Button("Mover para a Lixeira…", role: .destructive) { state.requestTrash(node) }
+            Button("Move to Trash…", role: .destructive) { state.requestTrash(node) }
         }
     }
 }

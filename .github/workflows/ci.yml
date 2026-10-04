@@ -28,4 +28,5 @@ jobs:
           path: .build
           key: spm-${{ runner.os }}-${{ hashFiles('Package.swift', 'Package.resolved') }}
       - run: swift test
+      - run: make strings-check
       - run: ./Scripts/build-app.sh

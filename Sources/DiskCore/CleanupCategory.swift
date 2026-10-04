@@ -32,7 +32,7 @@ public struct CleanupCategory: Identifiable, Sendable, Equatable {
     public let actions: [CleanupAction]
 
     public init(id: String, title: String, detail: String, symbol: String, paths: [URL], actions: [CleanupAction]) {
-        precondition(!actions.isEmpty, "Categoria \(id) sem ações")
+        precondition(!actions.isEmpty, "Category \(id) has no actions")
         self.id = id
         self.title = title
         self.detail = detail
@@ -80,16 +80,16 @@ extension CleanupCategory {
         var categories: [CleanupCategory] = [
             CleanupCategory(
                 id: "trash",
-                title: "Lixeira",
-                detail: "Itens já apagados que continuam ocupando espaço.",
+                title: String(localized: "Trash"),
+                detail: String(localized: "Items already deleted that still take up space."),
                 symbol: "trash",
                 paths: [h(".Trash")],
                 strategy: .emptyTrash
             ),
             CleanupCategory(
                 id: "user-caches",
-                title: "Caches de apps",
-                detail: "Arquivos temporários recriados automaticamente. Feche os apps antes de limpar.",
+                title: String(localized: "App caches"),
+                detail: String(localized: "Temporary files that apps recreate automatically. Quit the apps before cleaning."),
                 symbol: "shippingbox",
                 paths: [h("Library/Caches")],
                 strategy: .deleteContents
@@ -97,7 +97,7 @@ extension CleanupCategory {
             CleanupCategory(
                 id: "logs",
                 title: "Logs",
-                detail: "Registros de diagnóstico gerados por apps.",
+                detail: String(localized: "Diagnostic logs written by apps."),
                 symbol: "doc.text.magnifyingglass",
                 paths: [h("Library/Logs")],
                 strategy: .deleteContents
@@ -105,7 +105,7 @@ extension CleanupCategory {
             CleanupCategory(
                 id: "xcode-derived-data",
                 title: "Xcode DerivedData",
-                detail: "Builds intermediários. O Xcode recompila quando precisar.",
+                detail: String(localized: "Intermediate build files. Xcode rebuilds them when needed."),
                 symbol: "hammer",
                 paths: [h("Library/Developer/Xcode/DerivedData")],
                 strategy: .deleteContents
@@ -113,7 +113,7 @@ extension CleanupCategory {
             CleanupCategory(
                 id: "xcode-device-support",
                 title: "Xcode Device Support",
-                detail: "Símbolos de versões de iOS/watchOS de aparelhos conectados. Baixados de novo quando preciso.",
+                detail: String(localized: "Symbols for iOS/watchOS versions of connected devices. Downloaded again when needed."),
                 symbol: "iphone",
                 paths: ["iOS", "watchOS", "tvOS", "visionOS"].map { h("Library/Developer/Xcode/\($0) DeviceSupport") },
                 strategy: .deleteContents
@@ -121,23 +121,24 @@ extension CleanupCategory {
             CleanupCategory(
                 id: "xcode-archives",
                 title: "Xcode Archives",
-                detail: "Builds arquivados (incluem dSYMs). Vão para a Lixeira — revise antes de esvaziar.",
+                detail: String(localized: "Archived builds, including dSYMs. They go to the Trash, so review them before emptying it."),
                 symbol: "archivebox",
                 paths: [h("Library/Developer/Xcode/Archives")],
                 strategy: .trashContents
             ),
             CleanupCategory(
                 id: "simulators",
-                title: "Simuladores",
-                detail: "Remove simuladores de runtimes que não estão mais instalados (xcrun simctl delete unavailable).",
+                title: String(localized: "Simulators"),
+                detail: String(
+                    localized: "Removes simulators for runtimes that are no longer installed (xcrun simctl delete unavailable)."),
                 symbol: "ipad.and.iphone",
                 paths: [h("Library/Developer/CoreSimulator/Devices")],
                 strategy: .command("xcrun simctl delete unavailable")
             ),
             CleanupCategory(
                 id: "dev-caches",
-                title: "Caches de desenvolvimento",
-                detail: "npm, pnpm, Gradle, Cargo e Maven. Baixados de novo sob demanda.",
+                title: String(localized: "Developer caches"),
+                detail: String(localized: "npm, pnpm, Gradle, Cargo and Maven. Downloaded again on demand."),
                 symbol: "chevron.left.forwardslash.chevron.right",
                 paths: [".npm/_cacache", "Library/pnpm/store", ".pnpm-store", ".gradle/caches", ".cargo/registry/cache", ".m2/repository"]
                     .map(h),
@@ -146,7 +147,7 @@ extension CleanupCategory {
             CleanupCategory(
                 id: "go",
                 title: "Go",
-                detail: "Módulos baixados (~/go/pkg/mod) e cache de build. Baixados de novo sob demanda.",
+                detail: String(localized: "Downloaded modules (~/go/pkg/mod) and the build cache. Downloaded again on demand."),
                 symbol: "g.circle",
                 paths: [h("go/pkg/mod"), h("Library/Caches/go-build")],
                 strategy: .command("go clean -modcache -cache")
@@ -154,7 +155,7 @@ extension CleanupCategory {
             CleanupCategory(
                 id: "homebrew",
                 title: "Homebrew",
-                detail: "Downloads antigos e versões desatualizadas (brew cleanup --prune=all).",
+                detail: String(localized: "Old downloads and outdated versions (brew cleanup --prune=all)."),
                 symbol: "mug",
                 paths: [h("Library/Caches/Homebrew")],
                 strategy: .command("brew cleanup --prune=all")
@@ -163,36 +164,45 @@ extension CleanupCategory {
                 id: "docker",
                 title: "Docker",
                 detail:
-                    "Discos das VMs do Docker Desktop, Rancher Desktop ou Colima. Limpo pelo docker CLI no contexto atual; o engine precisa estar rodando.",
+                    String(
+                        localized:
+                            "Virtual machine disks for Docker Desktop, Rancher Desktop or Colima. Cleaned by the docker CLI in the current context, so the engine must be running."
+                    ),
                 symbol: "cube.box",
                 paths: dockerEngineDisks,
                 actions: [
                     CleanupAction(
                         id: "docker-prune",
-                        title: "Limpeza rápida",
-                        detail: "Remove containers parados, redes sem uso, imagens órfãs e cache de build.",
+                        title: String(localized: "Quick cleanup"),
+                        detail: String(localized: "Removes stopped containers, unused networks, dangling images and the build cache."),
                         strategy: .command("docker system prune -f")
                     ),
                     CleanupAction(
                         id: "docker-prune-all",
-                        title: "Limpeza completa",
+                        title: String(localized: "Full cleanup"),
                         detail:
-                            "Também remove todas as imagens que nenhum container usa (serão baixadas de novo) e todo o cache de build. Volumes são mantidos.",
+                            String(
+                                localized:
+                                    "Also removes every image no container uses (downloaded again when needed) and the whole build cache. Volumes are kept."
+                            ),
                         strategy: .command("docker system prune --all --force")
                     ),
                     CleanupAction(
                         id: "docker-volumes",
-                        title: "Remover volumes sem uso…",
+                        title: String(localized: "Remove unused volumes…"),
                         detail:
-                            "Apaga os dados de volumes que nenhum container usa, como bancos de dados de projetos parados. Não dá para desfazer.",
+                            String(
+                                localized:
+                                    "Deletes the data in volumes no container uses, such as databases from stopped projects. This can't be undone."
+                            ),
                         strategy: .command("docker volume prune --all --force")
                     ),
                 ]
             ),
             CleanupCategory(
                 id: "ios-backups",
-                title: "Backups de iPhone/iPad",
-                detail: "Backups locais de aparelhos. Revise e apague os antigos.",
+                title: String(localized: "iPhone/iPad backups"),
+                detail: String(localized: "Local device backups. Review them and delete the old ones."),
                 symbol: "externaldrive.badge.timemachine",
                 paths: [h("Library/Application Support/MobileSync/Backup")],
                 strategy: .review
@@ -200,7 +210,7 @@ extension CleanupCategory {
             CleanupCategory(
                 id: "downloads",
                 title: "Downloads",
-                detail: "Arquivos baixados. Revise os maiores itens.",
+                detail: String(localized: "Downloaded files. Review the largest items."),
                 symbol: "arrow.down.circle",
                 paths: [h("Downloads")],
                 strategy: .review
@@ -213,8 +223,10 @@ extension CleanupCategory {
             categories.append(
                 CleanupCategory(
                     id: "docker-desktop-leftover",
-                    title: "Docker Desktop (desinstalado)",
-                    detail: "Disco virtual (Docker.raw) de um Docker Desktop que não está mais instalado, com imagens e volumes antigos.",
+                    title: String(localized: "Docker Desktop (uninstalled)"),
+                    detail: String(
+                        localized:
+                            "Virtual disk (Docker.raw) from a Docker Desktop that is no longer installed, with old images and volumes."),
                     symbol: "shippingbox.and.arrow.backward",
                     paths: [dockerDesktopData],
                     strategy: .trashContents
@@ -236,8 +248,10 @@ extension CleanupCategory {
                 CleanupAction(
                     id: "android-unused-images",
                     title: unused.count == installed.count
-                        ? "Apagar imagens sem emulador (todas)" : "Apagar imagens sem emulador (\(unused.count) de \(installed.count))",
-                    detail: "Nenhum emulador (AVD) usa:\n" + unused.map { "• " + AndroidSDK.displayName(of: $0) }.joined(separator: "\n"),
+                        ? String(localized: "Delete images without an emulator (all)")
+                        : String(localized: "Delete images without an emulator (\(unused.count) of \(installed.count))"),
+                    detail: String(localized: "No emulator (AVD) uses:") + "\n"
+                        + unused.map { "• " + AndroidSDK.displayName(of: $0) }.joined(separator: "\n"),
                     strategy: .deleteItems(unused)
                 )
             )
@@ -246,18 +260,21 @@ extension CleanupCategory {
             actions.append(
                 CleanupAction(
                     id: "android-all-images",
-                    title: "Apagar todas as imagens",
-                    detail: "Emuladores existentes param de abrir até a imagem ser baixada de novo pelo SDK Manager do Android Studio.",
+                    title: String(localized: "Delete all images"),
+                    detail: String(
+                        localized: "Existing emulators won't start until the image is downloaded again from the Android Studio SDK Manager."
+                    ),
                     strategy: .deleteContents
                 )
             )
         }
-        actions.append(CleanupAction(id: "android-review-images", title: "Escolher no Explorar…", strategy: .review))
+        actions.append(CleanupAction(id: "android-review-images", title: String(localized: "Choose in Explore…"), strategy: .review))
 
         return CleanupCategory(
             id: "android-system-images",
-            title: "Android: imagens de sistema",
-            detail: "Imagens dos emuladores Android (\(installed.count) instaladas). Podem ser baixadas de novo pelo SDK Manager.",
+            title: String(localized: "Android: system images"),
+            detail: String(
+                localized: "Android emulator images (\(installed.count) installed). They can be downloaded again from the SDK Manager."),
             symbol: "smartphone",
             paths: [sdk.systemImagesRoot],
             actions: actions

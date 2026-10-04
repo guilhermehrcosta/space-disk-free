@@ -16,8 +16,8 @@ public enum CleanerError: LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .blockedBySafetyPolicy(let path): "Operação bloqueada por segurança: \(path)"
-        case .unknownAction(let id): "Ação desconhecida: \(id)"
+        case .blockedBySafetyPolicy(let path): String(localized: "Blocked for safety: \(path)")
+        case .unknownAction(let id): String(localized: "Unknown action: \(id)")
         }
     }
 }
@@ -56,7 +56,7 @@ public struct Cleaner: Sendable {
             if result.succeeded {
                 report.commandOutput = result.lastLine
             } else {
-                report.commandError = result.lastLine ?? "Falhou."
+                report.commandError = result.lastLine ?? String(localized: "Failed.")
             }
         case .review:
             return report
@@ -138,7 +138,7 @@ public struct Cleaner: Sendable {
             for path in paths { report.failures += removeContents(of: path) }
         } else {
             let result = await Shell.run(#"osascript -e 'tell application "Finder" to empty trash'"#)
-            if !result.succeeded { report.commandError = result.lastLine ?? "Falhou." }
+            if !result.succeeded { report.commandError = result.lastLine ?? String(localized: "Failed.") }
         }
         return report
     }
@@ -171,11 +171,11 @@ enum Shell {
         process.waitUntilExit()
 
         let status = process.terminationStatus
-        if status == 127 { return Result(succeeded: false, lastLine: "Ferramenta não encontrada.") }
+        if status == 127 { return Result(succeeded: false, lastLine: String(localized: "Tool not found.")) }
         let lastLine = String(decoding: data, as: UTF8.self)
             .split(whereSeparator: \.isNewline)
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .last { !$0.isEmpty }
-        return Result(succeeded: status == 0, lastLine: lastLine ?? (status == 0 ? nil : "Falhou (código \(status))."))
+        return Result(succeeded: status == 0, lastLine: lastLine ?? (status == 0 ? nil : String(localized: "Failed (code \(status)).")))
     }
 }

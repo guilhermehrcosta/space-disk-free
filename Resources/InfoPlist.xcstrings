@@ -1,0 +1,24 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSAppleEventsUsageDescription": {
+      "comment": "Privacy - Apple Events Sending Usage Description",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Used to ask Finder to empty the Trash when the app doesn't have Full Disk Access."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usado para pedir ao Finder que esvazie a Lixeira quando o app não tem Acesso Total ao Disco."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
