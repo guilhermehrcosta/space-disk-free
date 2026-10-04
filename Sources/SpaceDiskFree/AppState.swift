@@ -56,11 +56,24 @@ final class AppState {
         status.values.contains { $0.permissionDenied } || explorer.permissionDenied
     }
 
-    var reclaimableBytes: UInt64 {
+    var reclaimableBreakdown: [(category: CleanupCategory, bytes: UInt64)] {
         categories
             .filter(\.countsTowardReclaimable)
-            .compactMap { status[$0.id]?.size }
-            .reduce(0, +)
+            .compactMap { category in
+                guard let bytes = status[category.id]?.size, bytes > 0 else { return nil }
+                return (category, bytes)
+            }
+            .sorted { $0.bytes > $1.bytes }
+    }
+
+    var reclaimableBytes: UInt64 {
+        reclaimableBreakdown.map(\.bytes).reduce(0, +)
+    }
+
+    var excludedFromReclaimable: [CleanupCategory] {
+        categories
+            .filter { !$0.countsTowardReclaimable && (status[$0.id]?.size ?? 0) > 0 }
+            .sorted { (status[$0.id]?.size ?? 0) > (status[$1.id]?.size ?? 0) }
     }
 
     func refreshVolume() {
