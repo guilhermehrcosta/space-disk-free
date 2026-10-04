@@ -35,6 +35,7 @@ lipo -create "$SLICES_DIR"/* -output "$APP_DIR/Contents/MacOS/$EXECUTABLE"
 
 PLIST="$APP_DIR/Contents/Info.plist"
 cp Resources/Info.plist "$PLIST"
+cp Resources/AppIcon.icns "$APP_DIR/Contents/Resources/AppIcon.icns"
 [[ -n "${VERSION:-}" ]] && plutil -replace CFBundleShortVersionString -string "$VERSION" "$PLIST"
 [[ -n "${BUILD_NUMBER:-}" ]] && plutil -replace CFBundleVersion -string "$BUILD_NUMBER" "$PLIST"
 plutil -lint "$PLIST" >/dev/null

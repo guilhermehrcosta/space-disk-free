@@ -12,6 +12,7 @@ make run       # app + kill running instance + open
 make install   # copy to /Applications and open
 make dmg       # universal (arm64 + x86_64) app -> build/SpaceDiskFree-<version>.dmg, same as the release workflow
 make test      # swift test (Swift Testing)
+make icon      # regenerate Resources/AppIcon.icns from Scripts/make-icon.swift (drawn with AppKit + SF Symbols; commit the .icns)
 make lint      # swift format lint --strict (config: .swift-format); CI fails on any finding
 make format    # swift format in place — run before committing
 make clean

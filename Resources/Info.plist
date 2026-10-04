@@ -4,15 +4,17 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>pt-BR</string>
+	<key>CFBundleDisplayName</key>
+	<string>Space Disk Free</string>
 	<key>CFBundleExecutable</key>
 	<string>SpaceDiskFree</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.guilhermecosta.SpaceDiskFree</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Space Disk Free</string>
-	<key>CFBundleDisplayName</key>
 	<string>Space Disk Free</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>

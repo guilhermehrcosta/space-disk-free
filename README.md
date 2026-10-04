@@ -31,6 +31,7 @@ make run       # compila e abre build/Space Disk Free.app
 make install   # copia para /Applications e abre
 make dmg       # gera build/SpaceDiskFree-<versão>.dmg universal
 make test      # testes do DiskCore (Swift Testing)
+make icon      # redesenha o ícone (Scripts/make-icon.swift)
 make lint      # swift format lint (o CI usa o mesmo)
 make format    # formata o código
 ```

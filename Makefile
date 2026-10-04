@@ -11,7 +11,7 @@ TEST_FLAGS := --build-system native \
 	-Xlinker -rpath -Xlinker $(CLT_FRAMEWORKS)
 endif
 
-.PHONY: app run install dmg test lint format clean
+.PHONY: app run install dmg icon test lint format clean
 
 app:
 	./Scripts/build-app.sh
@@ -30,6 +30,10 @@ install: app
 dmg:
 	ARCHS="arm64 x86_64" ./Scripts/build-app.sh
 	./Scripts/make-dmg.sh
+
+# Redesenha Resources/AppIcon.icns a partir de Scripts/make-icon.swift.
+icon:
+	swift Scripts/make-icon.swift
 
 test:
 	swift test $(TEST_FLAGS)
