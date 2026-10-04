@@ -9,16 +9,20 @@ public struct CleanupReport: Sendable, Equatable {
     public var failures: [String] = []
     /// Saída de erro de um comando externo, quando houver.
     public var commandError: String?
+    /// Última linha da saída de um comando bem-sucedido (ex.: "Total reclaimed space: 3GB").
+    public var commandOutput: String?
 
     public var succeeded: Bool { failures.isEmpty && commandError == nil }
 }
 
 public enum CleanerError: LocalizedError {
     case blockedBySafetyPolicy(String)
+    case unknownAction(String)
 
     public var errorDescription: String? {
         switch self {
         case .blockedBySafetyPolicy(let path): "Operação bloqueada por segurança: \(path)"
+        case .unknownAction(let id): "Ação desconhecida: \(id)"
         }
     }
 }
@@ -30,7 +34,11 @@ public struct Cleaner: Sendable {
         self.policy = policy
     }
 
-    public func run(_ category: CleanupCategory) async throws -> CleanupReport {
+    /// Executa `action` (por padrão, a ação principal) sobre as pastas da categoria.
+    public func run(_ category: CleanupCategory, action: CleanupAction? = nil) async throws -> CleanupReport {
+        let action = action ?? category.actions[0]
+        guard category.actions.contains(action) else { throw CleanerError.unknownAction(action.id) }
+
         let paths = category.existingPaths
         for path in paths where !policy.canClearContents(of: path) {
             throw CleanerError.blockedBySafetyPolicy(path.path(percentEncoded: false))
@@ -39,7 +47,7 @@ public struct Cleaner: Sendable {
         let before = SizeCalculator.measure(paths).bytes
         var report = CleanupReport()
 
-        switch category.strategy {
+        switch action.strategy {
         case .deleteContents:
             for path in paths { report.failures += removeContents(of: path) }
         case .trashContents:
@@ -48,7 +56,12 @@ public struct Cleaner: Sendable {
         case .emptyTrash:
             report = try await emptyTrash(paths)
         case .command(let command):
-            report.commandError = await Shell.run(command)
+            let result = await Shell.run(command)
+            if result.succeeded {
+                report.commandOutput = result.lastLine
+            } else {
+                report.commandError = result.lastLine ?? "Falhou."
+            }
         case .review:
             return report
         }
@@ -96,16 +109,22 @@ public struct Cleaner: Sendable {
             for path in paths { report.failures += removeContents(of: path) }
         } else {
             // Sem Acesso Total ao Disco a ~/.Trash não é legível; o Finder consegue esvaziá-la.
-            report.commandError = await Shell.run(#"osascript -e 'tell application "Finder" to empty trash'"#)
+            let result = await Shell.run(#"osascript -e 'tell application "Finder" to empty trash'"#)
+            if !result.succeeded { report.commandError = result.lastLine ?? "Falhou." }
         }
         return report
     }
 }
 
 enum Shell {
+    struct Result {
+        var succeeded: Bool
+        /// Última linha não vazia da saída (stdout + stderr), ou a explicação do erro.
+        var lastLine: String?
+    }
+
     /// Executa `command` num zsh de login (para herdar o PATH do usuário, ex.: Homebrew).
-    /// Retorna `nil` em caso de sucesso ou a mensagem de erro.
-    static func run(_ command: String) async -> String? {
+    static func run(_ command: String) async -> Result {
         await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
                 continuation.resume(returning: runBlocking(command))
@@ -113,7 +132,7 @@ enum Shell {
         }
     }
 
-    private static func runBlocking(_ command: String) -> String? {
+    private static func runBlocking(_ command: String) -> Result {
         let process = Process()
         process.executableURL = URL(filePath: "/bin/zsh")
         process.arguments = ["-lc", command]
@@ -121,16 +140,17 @@ enum Shell {
         process.standardOutput = output
         process.standardError = output
 
-        do { try process.run() } catch { return error.localizedDescription }
+        do { try process.run() } catch { return Result(succeeded: false, lastLine: error.localizedDescription) }
         // Ler até EOF antes de esperar evita travar quando a saída enche o buffer do pipe.
         let data = output.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
 
-        guard process.terminationStatus != 0 else { return nil }
-        if process.terminationStatus == 127 { return "Ferramenta não encontrada." }
+        let status = process.terminationStatus
+        if status == 127 { return Result(succeeded: false, lastLine: "Ferramenta não encontrada.") }
         let lastLine = String(decoding: data, as: UTF8.self)
             .split(whereSeparator: \.isNewline)
-            .last.map(String.init)
-        return lastLine ?? "Falhou (código \(process.terminationStatus))."
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .last { !$0.isEmpty }
+        return Result(succeeded: status == 0, lastLine: lastLine ?? (status == 0 ? nil : "Falhou (código \(status))."))
     }
 }

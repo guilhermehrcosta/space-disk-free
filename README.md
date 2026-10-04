@@ -3,7 +3,7 @@
 App de barra de menus para macOS que mostra onde o espaço em disco está sendo consumido e oferece limpeza segura.
 
 - **Ícone na barra de menus** com o espaço livre (fica em alerta acima de 90% de uso).
-- **Limpeza**: categorias conhecidas (Lixeira, caches, logs, Xcode, simuladores, npm/Gradle/Cargo/Maven, Homebrew, Docker, backups de iPhone, Downloads) com tamanho e ação de um clique, sempre com confirmação.
+- **Limpeza**: categorias conhecidas (Lixeira, caches, logs, Xcode, simuladores, npm/Gradle/Cargo/Maven, Go, Homebrew, Docker (inclusive restos do Docker Desktop desinstalado), backups de iPhone, Downloads) com tamanho e ação de um clique, sempre com confirmação.
 - **Explorar**: maiores pastas da pasta pessoal, do disco inteiro ou de qualquer pasta, com navegação por níveis, "Mostrar no Finder" e "Mover para a Lixeira".
 
 Requer macOS 14+.

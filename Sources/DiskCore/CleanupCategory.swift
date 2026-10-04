@@ -13,22 +13,50 @@ public enum CleanupStrategy: Sendable, Equatable {
     case review
 }
 
+/// Uma forma de limpar uma categoria. Categorias com mais de uma ação mostram um menu.
+public struct CleanupAction: Identifiable, Sendable, Equatable {
+    public let id: String
+    public let title: String
+    /// Explicação extra mostrada na confirmação.
+    public let detail: String?
+    public let strategy: CleanupStrategy
+
+    public init(id: String, title: String, detail: String? = nil, strategy: CleanupStrategy) {
+        self.id = id
+        self.title = title
+        self.detail = detail
+        self.strategy = strategy
+    }
+}
+
 public struct CleanupCategory: Identifiable, Sendable, Equatable {
     public let id: String
     public let title: String
     public let detail: String
     public let symbol: String
     public let paths: [URL]
-    public let strategy: CleanupStrategy
+    /// A primeira é a ação principal. Nunca vazio.
+    public let actions: [CleanupAction]
 
-    public init(id: String, title: String, detail: String, symbol: String, paths: [URL], strategy: CleanupStrategy) {
+    public init(id: String, title: String, detail: String, symbol: String, paths: [URL], actions: [CleanupAction]) {
+        precondition(!actions.isEmpty, "Categoria \(id) sem ações")
         self.id = id
         self.title = title
         self.detail = detail
         self.symbol = symbol
         self.paths = paths
-        self.strategy = strategy
+        self.actions = actions
     }
+
+    public init(id: String, title: String, detail: String, symbol: String, paths: [URL], strategy: CleanupStrategy) {
+        self.init(
+            id: id, title: title, detail: detail, symbol: symbol, paths: paths,
+            actions: [CleanupAction(id: id, title: title, strategy: strategy)]
+        )
+    }
+
+    /// Estratégia da ação principal.
+    public var strategy: CleanupStrategy { actions[0].strategy }
 
     /// Entra no total "recuperável" apenas o que a própria categoria consegue liberar por inteiro.
     public var countsTowardReclaimable: Bool {
@@ -46,10 +74,21 @@ public struct CleanupCategory: Identifiable, Sendable, Equatable {
 }
 
 extension CleanupCategory {
-    public static func defaults(home: URL) -> [CleanupCategory] {
+    /// - Parameter isAppInstalled: recebe o nome do bundle (ex.: "Docker.app"); injetável para testes.
+    public static func defaults(
+        home: URL,
+        isAppInstalled: (String) -> Bool = { isInstalledInApplications($0) }
+    ) -> [CleanupCategory] {
         func h(_ relative: String) -> URL { home.appending(path: relative, directoryHint: .isDirectory) }
 
-        return [
+        let dockerDesktopData = h("Library/Containers/com.docker.docker/Data")
+        let dockerDesktopInstalled = isAppInstalled("Docker.app")
+        // Discos das VMs que rodam o engine Docker. O `docker` CLI limpa o engine do contexto atual.
+        let dockerEngineDisks =
+            (dockerDesktopInstalled ? [dockerDesktopData] : [])
+            + [h("Library/Application Support/rancher-desktop/lima"), h(".colima")]
+
+        var categories: [CleanupCategory] = [
             CleanupCategory(
                 id: "trash",
                 title: "Lixeira",
@@ -116,6 +155,15 @@ extension CleanupCategory {
                 strategy: .deleteContents
             ),
             CleanupCategory(
+                id: "go",
+                title: "Go",
+                detail: "Módulos baixados (~/go/pkg/mod) e cache de build. Baixados de novo sob demanda.",
+                symbol: "g.circle",
+                paths: [h("go/pkg/mod"), h("Library/Caches/go-build")],
+                // Os módulos são somente leitura; só o próprio `go` consegue apagá-los.
+                strategy: .command("go clean -modcache -cache")
+            ),
+            CleanupCategory(
                 id: "homebrew",
                 title: "Homebrew",
                 detail: "Downloads antigos e versões desatualizadas (brew cleanup --prune=all).",
@@ -126,10 +174,32 @@ extension CleanupCategory {
             CleanupCategory(
                 id: "docker",
                 title: "Docker",
-                detail: "Disco do Docker Desktop. Remove containers parados, imagens sem uso e cache de build (docker system prune -f).",
+                detail:
+                    "Discos das VMs do Docker Desktop, Rancher Desktop ou Colima. Limpo pelo docker CLI no contexto atual; o engine precisa estar rodando.",
                 symbol: "cube.box",
-                paths: [h("Library/Containers/com.docker.docker/Data")],
-                strategy: .command("docker system prune -f")
+                paths: dockerEngineDisks,
+                actions: [
+                    CleanupAction(
+                        id: "docker-prune",
+                        title: "Limpeza rápida",
+                        detail: "Remove containers parados, redes sem uso, imagens órfãs e cache de build.",
+                        strategy: .command("docker system prune -f")
+                    ),
+                    CleanupAction(
+                        id: "docker-prune-all",
+                        title: "Limpeza completa",
+                        detail:
+                            "Também remove todas as imagens que nenhum container usa (serão baixadas de novo) e todo o cache de build. Volumes são mantidos.",
+                        strategy: .command("docker system prune --all --force")
+                    ),
+                    CleanupAction(
+                        id: "docker-volumes",
+                        title: "Remover volumes sem uso…",
+                        detail:
+                            "Apaga os dados de volumes que nenhum container usa, como bancos de dados de projetos parados. Não dá para desfazer.",
+                        strategy: .command("docker volume prune --all --force")
+                    ),
+                ]
             ),
             CleanupCategory(
                 id: "ios-backups",
@@ -148,5 +218,29 @@ extension CleanupCategory {
                 strategy: .review
             ),
         ]
+
+        // Dados de um Docker Desktop que já foi desinstalado: o Docker.raw fica para trás e
+        // nenhum `docker prune` alcança, pois o CLI aponta para outro engine (ou para nenhum).
+        if !dockerDesktopInstalled {
+            categories.append(
+                CleanupCategory(
+                    id: "docker-desktop-leftover",
+                    title: "Docker Desktop (desinstalado)",
+                    detail: "Disco virtual (Docker.raw) de um Docker Desktop que não está mais instalado, com imagens e volumes antigos.",
+                    symbol: "shippingbox.and.arrow.backward",
+                    paths: [dockerDesktopData],
+                    strategy: .trashContents
+                )
+            )
+        }
+        return categories
+    }
+
+    /// Procura o app em /Applications e ~/Applications.
+    public static func isInstalledInApplications(_ bundleName: String) -> Bool {
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        return [URL(filePath: "/Applications"), home.appending(path: "Applications")].contains {
+            FileManager.default.fileExists(atPath: $0.appending(path: bundleName).path(percentEncoded: false))
+        }
     }
 }

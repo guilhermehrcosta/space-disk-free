@@ -95,6 +95,23 @@ private struct CategoryRow: View {
         let isBusy = status.isScanning || status.isCleaning
         let isEmpty = (status.size ?? 0) == 0
 
+        if category.actions.count > 1 {
+            Menu("Limpar") {
+                ForEach(category.actions) { action in
+                    Button(action.title) { state.requestCleanup(category, action: action) }
+                }
+            }
+            .menuStyle(.button)
+            .controlSize(.small)
+            .fixedSize()
+            .disabled(isBusy)
+        } else {
+            singleActionButton(isBusy: isBusy, isEmpty: isEmpty)
+        }
+    }
+
+    @ViewBuilder
+    private func singleActionButton(isBusy: Bool, isEmpty: Bool) -> some View {
         switch category.strategy {
         case .review:
             Button("Explorar") {

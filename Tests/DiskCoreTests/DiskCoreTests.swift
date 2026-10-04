@@ -84,11 +84,60 @@ struct CleanerTests {
         #expect(FileManager.default.fileExists(atPath: documents.appending(path: "importante.txt").path(percentEncoded: false)))
     }
 
+    @Test func commandActionReportsLastOutputLine() async throws {
+        let home = try TemporaryDirectory()
+        let folder = home.url.appending(path: "cache", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let category = CleanupCategory(
+            id: "cmd", title: "Cmd", detail: "", symbol: "x", paths: [folder],
+            actions: [
+                CleanupAction(id: "ok", title: "Ok", strategy: .command("echo inicio; echo 'Total reclaimed space: 1GB'; echo")),
+                CleanupAction(id: "fail", title: "Falha", strategy: .command("echo 'daemon parado' >&2; exit 3")),
+            ]
+        )
+        let cleaner = Cleaner(policy: SafetyPolicy(home: home.url))
+
+        let ok = try await cleaner.run(category)
+        #expect(ok.commandOutput == "Total reclaimed space: 1GB")
+        #expect(ok.commandError == nil)
+
+        let failed = try await cleaner.run(category, action: category.actions[1])
+        #expect(failed.commandError == "daemon parado")
+    }
+
+    @Test func refusesActionFromAnotherCategory() async throws {
+        let home = try TemporaryDirectory()
+        let category = CleanupCategory(id: "a", title: "A", detail: "", symbol: "x", paths: [], strategy: .deleteContents)
+        let foreign = CleanupAction(id: "rm", title: "rm", strategy: .command("rm -rf ~"))
+        await #expect(throws: CleanerError.self) {
+            try await Cleaner(policy: SafetyPolicy(home: home.url)).run(category, action: foreign)
+        }
+    }
+
+    @Test func dockerDesktopDataIsLeftoverOnlyWhenTheAppIsGone() {
+        let home = URL(filePath: "/Users/teste")
+        let data = home.appending(path: "Library/Containers/com.docker.docker/Data", directoryHint: .isDirectory)
+
+        let uninstalled = CleanupCategory.defaults(home: home, isAppInstalled: { _ in false })
+        #expect(uninstalled.first { $0.id == "docker-desktop-leftover" }?.paths == [data])
+        #expect(uninstalled.first { $0.id == "docker-desktop-leftover" }?.strategy == .trashContents)
+        #expect(uninstalled.first { $0.id == "docker" }?.paths.contains(data) == false)
+
+        let installed = CleanupCategory.defaults(home: home, isAppInstalled: { $0 == "Docker.app" })
+        #expect(installed.contains { $0.id == "docker-desktop-leftover" } == false)
+        #expect(installed.first { $0.id == "docker" }?.paths.contains(data) == true)
+    }
+
     @Test func defaultCategoriesAreAllAllowedByPolicy() {
         let home = URL(filePath: "/Users/teste")
         let policy = SafetyPolicy(home: home)
-        let categories = CleanupCategory.defaults(home: home)
-        #expect(Set(categories.map(\.id)).count == categories.count)
+        let categories =
+            CleanupCategory.defaults(home: home, isAppInstalled: { _ in true })
+            + CleanupCategory.defaults(home: home, isAppInstalled: { _ in false })
+        for installed in [true, false] {
+            let ids = CleanupCategory.defaults(home: home, isAppInstalled: { _ in installed }).map(\.id)
+            #expect(Set(ids).count == ids.count)
+        }
         for category in categories where category.strategy != .review {
             for path in category.paths {
                 #expect(policy.canClearContents(of: path), "\(path)")

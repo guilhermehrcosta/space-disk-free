@@ -122,48 +122,67 @@ final class AppState {
 
     // MARK: - Limpeza
 
-    func requestCleanup(_ category: CleanupCategory) {
+    func requestCleanup(_ category: CleanupCategory, action: CleanupAction? = nil) {
+        let action = action ?? category.actions[0]
         let size = status[category.id]?.size?.formattedBytes ?? "?"
+        let extra = action.detail.map { "\n\($0)" } ?? "\n\(category.detail)"
         let (message, confirmTitle, destructive): (String, String, Bool) =
-            switch category.strategy {
+            switch action.strategy {
             case .deleteContents:
-                ("\(size) serão apagados permanentemente.\n\(category.detail)", "Apagar", true)
+                ("\(size) serão apagados permanentemente.\(extra)", "Apagar", true)
             case .trashContents:
                 ("\(size) serão movidos para a Lixeira.", "Mover para Lixeira", false)
             case .emptyTrash:
                 ("\(size) serão apagados permanentemente. Não é possível desfazer.", "Esvaziar", true)
             case .command(let command):
-                ("Será executado:\n\(command)\n\n\(category.detail)", "Executar", true)
+                ("Será executado:\n\(command)\n\(extra)", "Executar", true)
             case .review:
                 ("", "", false)
             }
-        if case .review = category.strategy { return }
+        if case .review = action.strategy { return }
 
+        // "Remover volumes sem uso…" vira "Docker: Remover volumes sem uso?".
+        let actionTitle = action.title.trimmingCharacters(in: CharacterSet(charactersIn: "…"))
         pendingConfirmation = Confirmation(
-            title: "Limpar \(category.title)?",
+            title: category.actions.count > 1 ? "\(category.title): \(actionTitle)?" : "Limpar \(category.title)?",
             message: message,
             confirmTitle: confirmTitle,
             isDestructive: destructive,
-            action: { [weak self] in await self?.performCleanup(category) }
+            action: { [weak self] in await self?.performCleanup(category, action: action) }
         )
     }
 
-    private func performCleanup(_ category: CleanupCategory) async {
+    private func performCleanup(_ category: CleanupCategory, action: CleanupAction) async {
         status[category.id]?.isCleaning = true
         defer { status[category.id]?.isCleaning = false }
 
         do {
-            let report = try await cleaner.run(category)
+            let report = try await cleaner.run(category, action: action)
             showToast(Self.summary(of: report, category: category))
         } catch {
             showToast(error.localizedDescription)
         }
         await rescan(category)
         refreshVolume()
+
+        // Ferramentas como o Docker devolvem o espaço ao macOS aos poucos (o Docker.raw
+        // encolhe depois do prune). Mede de novo um pouco depois para mostrar o valor real.
+        if case .command = action.strategy {
+            Task { [weak self] in
+                try? await Task.sleep(for: .seconds(120))
+                await self?.rescan(category)
+                self?.refreshVolume()
+            }
+        }
     }
 
     private static func summary(of report: CleanupReport, category: CleanupCategory) -> String {
         if let error = report.commandError { return "\(category.title): \(error)" }
+        // Comandos externos costumam informar quanto liberaram; pouco espaço medido na hora
+        // geralmente significa que o espaço ainda vai ser devolvido (ex.: Docker).
+        if let output = report.commandOutput, report.reclaimedBytes < 1_000_000 {
+            return "\(category.title): \(output)"
+        }
         var text =
             report.movedToTrash
             ? "\(report.reclaimedBytes.formattedBytes) movidos para a Lixeira"
