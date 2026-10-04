@@ -2,8 +2,6 @@ import AppKit
 import DiskCore
 import SwiftUI
 
-/// Navegação pelas maiores pastas: lista os filhos do diretório atual e mede cada subpasta em paralelo.
-/// Tamanhos medidos ficam em cache, então voltar ou entrar numa pasta já vista é instantâneo.
 @MainActor
 @Observable
 final class ExplorerModel {
@@ -12,14 +10,12 @@ final class ExplorerModel {
     private(set) var isLoading = false
     private(set) var errorMessage: String?
     private(set) var permissionDenied = false
-    /// Quando os tamanhos exibidos foram medidos; `nil` enquanto ainda medindo.
     private(set) var measuredAt: Date?
     private var cache = DirectorySizeCache()
     private var history: [URL] = []
     private var loadTask: Task<Void, Never>?
     private var hasLoaded = false
 
-    /// Quantas subpastas medir ao mesmo tempo. Mais que isso disputa I/O sem ganho real.
     private let maxConcurrentMeasurements = 4
 
     init(root: URL) {
@@ -34,7 +30,6 @@ final class ExplorerModel {
         if !hasLoaded { load(current) }
     }
 
-    /// Abre `url` como nova raiz de navegação.
     func open(_ url: URL) {
         history.removeAll()
         load(url)
@@ -51,12 +46,10 @@ final class ExplorerModel {
         load(previous)
     }
 
-    /// Mede a pasta atual de novo, ignorando o cache.
     func reload() {
         load(current, force: true)
     }
 
-    /// Esquece todas as medições e mede a pasta atual de novo.
     func reloadAll() {
         cache.removeAll()
         load(current)
@@ -67,12 +60,10 @@ final class ExplorerModel {
         cache.remove(node.url, knownBytes: node.size)
     }
 
-    /// Medição feita fora do explorador (ex.: varredura das categorias) que pode ser reaproveitada.
     func record(_ url: URL, _ measurement: TreeMeasurement) {
         cache.record(url, measurement)
     }
 
-    /// O conteúdo de `url` mudou (ex.: após uma limpeza) e agora ocupa `measurement`.
     func contentsChanged(at url: URL, _ measurement: TreeMeasurement) {
         cache.update(url, measurement.total)
         cache.record(url, measurement)
@@ -149,7 +140,6 @@ final class ExplorerModel {
             for _ in 0..<maxConcurrentMeasurements { enqueueNext() }
 
             while let (url, measurement) = await group.next() {
-                // Medição interrompida é parcial: não pode ir para a tela nem para o cache.
                 if Task.isCancelled {
                     group.cancelAll()
                     return
@@ -165,7 +155,6 @@ final class ExplorerModel {
         }
     }
 
-    /// Maiores primeiro; itens ainda sendo medidos ficam no fim.
     private static func sorted(_ nodes: [FileNode]) -> [FileNode] {
         nodes.sorted { lhs, rhs in
             switch (lhs.size, rhs.size) {

@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Empacota "build/Space Disk Free.app" em build/SpaceDiskFree-<versão>.dmg,
-# com um atalho para /Applications para instalar arrastando.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -18,7 +16,6 @@ cp -R "$APP_DIR" "$STAGING/"
 ln -s /Applications "$STAGING/Applications"
 
 rm -f "$DMG"
-# hdiutil às vezes falha com "Resource busy" em runners de CI; tenta de novo.
 for attempt in 1 2 3; do
     if hdiutil create -volname "$APP_NAME" -srcfolder "$STAGING" -fs HFS+ -format UDZO -ov "$DMG" >/dev/null; then
         echo "✓ $DMG"

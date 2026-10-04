@@ -1,6 +1,5 @@
 import Foundation
 
-/// Regras que impedem o app de apagar algo que não deveria, independente do que a UI pedir.
 public struct SafetyPolicy: Sendable {
     public let home: URL
 
@@ -10,7 +9,6 @@ public struct SafetyPolicy: Sendable {
 
     private var homePath: String { Self.normalized(home) }
 
-    /// Pastas que nunca podem ir para a Lixeira nem ter o conteúdo apagado em bloco.
     private var protectedPaths: Set<String> {
         let relative = [
             "", "Library", "Desktop", "Documents", "Downloads", "Pictures", "Movies", "Music",
@@ -24,7 +22,6 @@ public struct SafetyPolicy: Sendable {
         return paths
     }
 
-    /// Pode mover um item para a Lixeira a partir da aba Explorar?
     public func canTrash(_ url: URL) -> Bool {
         let path = Self.normalized(url)
         guard Self.isInside(path, homePath) || Self.isInside(path, "/Applications") else { return false }
@@ -32,9 +29,7 @@ public struct SafetyPolicy: Sendable {
         return !Self.isInside(path, homePath + "/Library/Mobile Documents")
     }
 
-    /// Pode apagar em bloco o conteúdo desta pasta? (a pasta em si continua existindo)
     public func canClearContents(of url: URL) -> Bool {
-        // Resolve symlinks: um link apontando para fora da home não pode virar alvo.
         let path = Self.normalized(url.resolvingSymlinksInPath())
         guard Self.isInside(path, homePath) else { return false }
         guard !Self.isInside(path, homePath + "/Library/Mobile Documents") else { return false }
@@ -52,7 +47,6 @@ public struct SafetyPolicy: Sendable {
         url.normalizedPath
     }
 
-    /// `true` se `path` está estritamente dentro de `base`.
     static func isInside(_ path: String, _ base: String) -> Bool {
         path.hasPrefix(base + "/")
     }

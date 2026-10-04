@@ -1,6 +1,5 @@
 import Foundation
 
-/// Imagens de sistema do Android SDK e quais delas os emuladores (AVDs) ainda usam.
 public struct AndroidSDK: Sendable {
     public let sdkRoot: URL
     public let avdHome: URL
@@ -12,7 +11,6 @@ public struct AndroidSDK: Sendable {
 
     public var systemImagesRoot: URL { sdkRoot.appending(path: "system-images", directoryHint: .isDirectory) }
 
-    /// Cada imagem instalada: system-images/<api>/<variante>/<abi>.
     public func installedSystemImages() -> [URL] {
         subdirectories(of: systemImagesRoot)
             .flatMap(subdirectories)
@@ -20,7 +18,6 @@ public struct AndroidSDK: Sendable {
             .sorted { $0.path < $1.path }
     }
 
-    /// Imagens referenciadas por algum AVD (`image.sysdir.N` no config.ini), como `normalizedPath`.
     public func systemImagesInUse() -> Set<String> {
         var inUse = Set<String>()
         for avd in avdDirectories() {
@@ -39,7 +36,6 @@ public struct AndroidSDK: Sendable {
         return installedSystemImages().filter { !inUse.contains($0.normalizedPath) }
     }
 
-    /// Nome legível, ex.: "API 33 · google_apis_playstore · arm64-v8a".
     public static func displayName(of image: URL) -> String {
         let components = image.pathComponents.suffix(3)
         guard components.count == 3 else { return image.lastPathComponent }
@@ -47,7 +43,6 @@ public struct AndroidSDK: Sendable {
         return ([api] + components.dropFirst()).joined(separator: " · ")
     }
 
-    /// Pastas `.avd`: as que ficam em ~/.android/avd e as apontadas pelo `path=` dos arquivos `.ini`.
     private func avdDirectories() -> [URL] {
         var directories = subdirectories(of: avdHome).filter { $0.pathExtension == "avd" }
         let iniFiles = (try? FileManager.default.contentsOfDirectory(at: avdHome, includingPropertiesForKeys: nil)) ?? []

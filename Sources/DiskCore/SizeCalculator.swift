@@ -3,7 +3,6 @@ import Foundation
 
 public struct SizeResult: Sendable, Equatable {
     public var bytes: UInt64
-    /// Algum subdiretório não pôde ser lido (normalmente falta de Acesso Total ao Disco).
     public var permissionDenied: Bool
 
     public init(bytes: UInt64 = 0, permissionDenied: Bool = false) {
@@ -16,10 +15,8 @@ public struct SizeResult: Sendable, Equatable {
     }
 }
 
-/// Resultado de uma varredura que também anota o tamanho de cada subpasta direta.
 public struct TreeMeasurement: Sendable, Equatable {
     public var total: SizeResult
-    /// Tamanho de cada subpasta imediata, indexado por `URL.normalizedPath`.
     public var children: [String: SizeResult]
 
     public init(total: SizeResult = SizeResult(), children: [String: SizeResult] = [:]) {
@@ -29,11 +26,6 @@ public struct TreeMeasurement: Sendable, Equatable {
 }
 
 public enum SizeCalculator {
-    /// Espaço realmente alocado em disco por um arquivo ou diretório (recursivo).
-    ///
-    /// Usa `fts(3)` em vez de `FileManager.enumerator` por ser bem mais rápido em árvores
-    /// grandes. Não segue symlinks, não atravessa para outros volumes e conta hard links
-    /// uma única vez. Respeita cancelamento da `Task` corrente; nesse caso o resultado é parcial.
     public static func measure(_ url: URL) -> SizeResult {
         walk(url, collectChildren: false).total
     }
@@ -42,8 +34,6 @@ public enum SizeCalculator {
         urls.reduce(SizeResult()) { $0 + measure($1) }
     }
 
-    /// Igual a `measure`, mas na mesma passada anota o tamanho de cada subpasta direta.
-    /// Permite ao explorador abrir o próximo nível sem medir de novo.
     public static func measureTree(_ url: URL) -> TreeMeasurement {
         walk(url, collectChildren: true)
     }
@@ -64,7 +54,6 @@ public enum SizeCalculator {
         var measurement = TreeMeasurement()
         var seenHardLinks = Set<HardLinkKey>()
         var visited = 0
-        // Subpasta direta (nível 1) sendo percorrida no momento e o que já foi somado nela.
         var currentChild: String?
         var childResult = SizeResult()
 
@@ -121,7 +110,6 @@ extension UInt64 {
 }
 
 extension URL {
-    /// Caminho absoluto padronizado e sem barra final: chave estável para comparar e indexar pastas.
     public var normalizedPath: String {
         var path = standardizedFileURL.path(percentEncoded: false)
         while path.count > 1, path.hasSuffix("/") { path.removeLast() }

@@ -1,6 +1,5 @@
 name: Release
 
-# Ao publicar um release no GitHub (tag vX.Y.Z), gera o .dmg universal e anexa ao release.
 on:
   release:
     types: [published]
