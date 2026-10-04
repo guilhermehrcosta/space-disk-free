@@ -23,7 +23,13 @@ Requires macOS 14 or later. Available in English and Brazilian Portuguese. The a
 
 ## Install
 
-Download `SpaceDiskFree-<version>.dmg` from **Releases**, open it and drag the app into **Applications**. The build is universal (Apple Silicon and Intel).
+With [Homebrew](https://brew.sh):
+
+```sh
+brew install --cask guilhermehrcosta/tap/space-disk-free
+```
+
+Or download `SpaceDiskFree-<version>.dmg` from **Releases**, open it and drag the app into **Applications**. The build is universal (Apple Silicon and Intel).
 
 The app is not signed with a Developer ID, so macOS blocks the first launch. To allow it, try to open the app once, then go to **System Settings › Privacy & Security** and click **Open Anyway**. You can also run this in Terminal:
 
@@ -61,7 +67,13 @@ The ad-hoc signature changes on every build, so macOS may ask for Full Disk Acce
 
 ## Release
 
-Create a GitHub release with a `vX.Y.Z` tag and publish it. The [release workflow](.github/workflows/release.yml) runs the tests, builds the universal `.dmg` and attaches it to the release.
+Create a GitHub release with a version tag (`X.Y.Z` or `vX.Y.Z`) and publish it. The [release workflow](.github/workflows/release.yml) runs the tests, builds the universal `.dmg` and attaches it to the release. For releases that aren't marked as pre-release, it then updates the cask in [guilhermehrcosta/homebrew-tap](https://github.com/guilhermehrcosta/homebrew-tap).
+
+To republish an existing release to the tap, run the workflow manually with its tag:
+
+```sh
+gh workflow run release.yml -f tag=X.Y.Z
+```
 
 ## Architecture
 

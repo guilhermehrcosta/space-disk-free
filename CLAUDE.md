@@ -34,6 +34,7 @@ Requires Xcode selected (`xcode-select -p` → Xcode.app). With only the Command
 
 - `.github/workflows/ci.yml`: lint runs on Ubuntu in the `swift:6.4` container (cheap minutes; keep it on the same Swift version as local so `swift format` agrees). Tests and an app build run on `macos-15`. The repo is private, and macOS minutes count 10×, so keep the trigger filters (`paths-ignore`, `concurrency`).
 - `.github/workflows/release.yml`: publishing a GitHub release tagged `vX.Y.Z` runs tests, builds the universal app with `VERSION` taken from the tag and `BUILD_NUMBER` = run number, then attaches the `.dmg` to the release. There is no Developer ID or notarization (ad-hoc signature), so users have to approve the app once in Privacy & Security.
+- Homebrew: the `homebrew` job in `release.yml` downloads the published `.dmg`, fills in `Packaging/space-disk-free.rb` (version, sha256, tag prefix) and pushes it to `guilhermehrcosta/homebrew-tap` through `Scripts/update-homebrew-tap.sh`. It skips pre-releases and authenticates with the `HOMEBREW_TAP_DEPLOY_KEY` secret, a deploy key with write access to the tap only. `workflow_dispatch` with a `tag` input republishes an existing release. To validate cask changes, use the native `/opt/homebrew/bin/brew` (`brew style --cask` / `brew audit --cask --online` on `guilhermehrcosta/tap/space-disk-free`).
 - `build-app.sh` builds each arch separately and merges them with `lipo`. Each slice is copied right after its build because the Xcode build backend uses the same output dir for every arch.
 
 ## Architecture
