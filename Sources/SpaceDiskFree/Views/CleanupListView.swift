@@ -48,7 +48,7 @@ private struct CategoryRow: View {
                         Image(systemName: "lock.fill")
                             .font(.caption2)
                             .foregroundStyle(.orange)
-                            .help("Parte desta pasta não pôde ser lida")
+                            .help("Part of this folder couldn't be read")
                     }
                 }
                 Text(category.detail)
@@ -70,10 +70,10 @@ private struct CategoryRow: View {
         .contentShape(Rectangle())
         .contextMenu {
             ForEach(category.existingPaths, id: \.self) { url in
-                Button("Mostrar \(url.lastPathComponent) no Finder") { state.reveal(url) }
+                Button("Show \(url.lastPathComponent) in Finder") { state.reveal(url) }
             }
             if let first = category.existingPaths.first {
-                Button("Explorar maiores itens") { onExplore(first) }
+                Button("Explore largest items") { onExplore(first) }
             }
         }
     }
@@ -95,7 +95,7 @@ private struct CategoryRow: View {
         let isEmpty = (status.size ?? 0) == 0
 
         if category.actions.count > 1 {
-            Menu("Limpar") {
+            Menu("Clean") {
                 ForEach(category.actions) { action in
                     Button(action.title) {
                         if case .review = action.strategy {
@@ -119,20 +119,20 @@ private struct CategoryRow: View {
     private func singleActionButton(isBusy: Bool, isEmpty: Bool) -> some View {
         switch category.strategy {
         case .review:
-            Button("Explorar") {
+            Button("Explore") {
                 if let first = category.existingPaths.first { onExplore(first) }
             }
             .controlSize(.small)
         case .command:
-            Button("Executar") { state.requestCleanup(category) }
+            Button("Run") { state.requestCleanup(category) }
                 .controlSize(.small)
                 .disabled(isBusy)
         case .emptyTrash:
-            Button("Esvaziar") { state.requestCleanup(category) }
+            Button("Empty") { state.requestCleanup(category) }
                 .controlSize(.small)
                 .disabled(isBusy || isEmpty)
         case .deleteContents, .deleteItems, .trashContents:
-            Button("Limpar") { state.requestCleanup(category) }
+            Button("Clean") { state.requestCleanup(category) }
                 .controlSize(.small)
                 .disabled(isBusy || isEmpty)
         }

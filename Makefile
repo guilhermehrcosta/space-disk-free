@@ -9,7 +9,7 @@ TEST_FLAGS := --build-system native \
 	-Xlinker -rpath -Xlinker $(CLT_FRAMEWORKS)
 endif
 
-.PHONY: app run install dmg icon test lint format clean
+.PHONY: app run install dmg icon strings strings-check test lint format clean
 
 app:
 	./Scripts/build-app.sh
@@ -30,6 +30,16 @@ dmg:
 
 icon:
 	swift Scripts/make-icon.swift
+
+strings:
+	rm -rf .build/strings .build/strings-build
+	mkdir -p .build/strings
+	swift build --scratch-path .build/strings-build \
+		-Xswiftc -emit-localized-strings -Xswiftc -emit-localized-strings-path -Xswiftc $(CURDIR)/.build/strings
+	xcrun xcstringstool sync Resources/Localizable.xcstrings --stringsdata .build/strings/*.stringsdata
+
+strings-check: strings
+	git diff --exit-code -- Resources/Localizable.xcstrings
 
 test:
 	swift test $(TEST_FLAGS)

@@ -80,7 +80,7 @@ final class ExplorerModel {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.directoryURL = current
-        panel.prompt = "Analisar"
+        panel.prompt = String(localized: "Analyze")
         NSApp.activate()
         if panel.runModal() == .OK, let url = panel.url { open(url) }
     }
@@ -123,7 +123,7 @@ final class ExplorerModel {
                 permissionDenied =
                     [Int(EPERM), Int(EACCES)].contains(code)
                     || (error as NSError).code == NSFileReadNoPermissionError
-                errorMessage = permissionDenied ? "Sem permissão para ler esta pasta." : error.localizedDescription
+                errorMessage = permissionDenied ? String(localized: "No permission to read this folder.") : error.localizedDescription
             }
             if !Task.isCancelled { isLoading = false }
         }

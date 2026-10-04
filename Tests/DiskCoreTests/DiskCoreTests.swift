@@ -311,3 +311,48 @@ struct AndroidSDKTests {
         #expect(sdk.installedSystemImages().count == 3)
     }
 }
+
+struct LocalizationTests {
+    static let resources = URL(filePath: #filePath)
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .appending(path: "Resources")
+
+    struct Catalog: Decodable {
+        struct Entry: Decodable {
+            var extractionState: String?
+            var localizations: [String: Localization]?
+        }
+        struct Localization: Decodable {
+            struct StringUnit: Decodable {
+                var state: String
+                var value: String
+            }
+            var stringUnit: StringUnit?
+        }
+        var sourceLanguage: String
+        var strings: [String: Entry]
+    }
+
+    static func placeholders(in text: String) -> [String] {
+        text.matches(of: #/%(?:\d+\$)?(@|lld|ld|d|f)/#).map { String($0.output.1) }.sorted()
+    }
+
+    @Test(arguments: ["Localizable.xcstrings", "InfoPlist.xcstrings"])
+    func everyStringHasABrazilianPortugueseTranslation(file: String) throws {
+        let data = try Data(contentsOf: Self.resources.appending(path: file))
+        let catalog = try JSONDecoder().decode(Catalog.self, from: data)
+        #expect(catalog.sourceLanguage == "en")
+        #expect(!catalog.strings.isEmpty)
+
+        for (key, entry) in catalog.strings where entry.extractionState != "stale" {
+            let unit = entry.localizations?["pt-BR"]?.stringUnit
+            #expect(unit?.state == "translated", "\(key)")
+            #expect(unit?.value.isEmpty == false, "\(key)")
+            if let value = unit?.value, !file.hasPrefix("InfoPlist") {
+                #expect(Self.placeholders(in: value) == Self.placeholders(in: key), "\(key)")
+            }
+        }
+    }
+}

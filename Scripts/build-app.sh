@@ -27,6 +27,10 @@ lipo -create "$SLICES_DIR"/* -output "$APP_DIR/Contents/MacOS/$EXECUTABLE"
 PLIST="$APP_DIR/Contents/Info.plist"
 cp Resources/Info.plist "$PLIST"
 cp Resources/AppIcon.icns "$APP_DIR/Contents/Resources/AppIcon.icns"
+for catalog in Resources/*.xcstrings; do
+    xcrun xcstringstool compile "$catalog" --output-directory "$APP_DIR/Contents/Resources"
+done
+mkdir -p "$APP_DIR/Contents/Resources/en.lproj"
 [[ -n "${VERSION:-}" ]] && plutil -replace CFBundleShortVersionString -string "$VERSION" "$PLIST"
 [[ -n "${BUILD_NUMBER:-}" ]] && plutil -replace CFBundleVersion -string "$BUILD_NUMBER" "$PLIST"
 plutil -lint "$PLIST" >/dev/null

@@ -20,7 +20,7 @@ public struct VolumeStatus: Sendable, Equatable {
         else { return nil }
 
         return VolumeStatus(
-            name: values.volumeLocalizedName ?? "Disco",
+            name: values.volumeLocalizedName ?? String(localized: "Disk"),
             totalBytes: UInt64(max(total, 0)),
             availableBytes: UInt64(max(available, 0))
         )

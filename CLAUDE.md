@@ -2,13 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Space Disk Free is a macOS 14+ menu bar app (SwiftUI `MenuBarExtra`, `LSUIElement`) that shows what is using disk space and cleans it up. The UI text and user-facing docs are in Brazilian Portuguese, so keep new strings in pt-BR.
+Space Disk Free is a macOS 14+ menu bar app (SwiftUI `MenuBarExtra`, `LSUIElement`) that shows what is using disk space and cleans it up. The UI is localized in English (source language) and Brazilian Portuguese.
 
 ## Conventions
 
 - Don't write code comments (`//`, `///`, or `#` explanations in scripts, Makefile and YAML). Explain the reasoning in the PR description. `// swift-tools-version` in `Package.swift` and the shebangs are syntax, not comments.
 - Every change goes on a branch and is delivered as a pull request. Never commit directly to `main`.
-- Commit messages, PR titles and PR descriptions are written in English. The app UI stays in pt-BR.
+- Commit messages, PR titles and PR descriptions are written in English.
 - Commits and PRs carry no Claude attribution (no `Co-Authored-By`, no "Generated with Claude Code").
 
 ## Commands
@@ -22,6 +22,7 @@ make test      # swift test (Swift Testing)
 make icon      # regenerate Resources/AppIcon.icns from Scripts/make-icon.swift (drawn with AppKit + SF Symbols; commit the .icns)
 make lint      # swift format lint --strict (config: .swift-format); CI fails on any finding
 make format    # swift format in place — run before committing
+make strings   # rebuild with -emit-localized-strings and sync Resources/Localizable.xcstrings
 make clean
 
 swift test --filter SafetyPolicyTests   # one suite or test
@@ -59,6 +60,13 @@ There are two SwiftPM targets, and the split is deliberate:
 - **Explorer cache.** `DirectorySizeCache` (keys = `URL.normalizedPath`, 15 min TTL) lives in `ExplorerModel`. Directories are measured with `SizeCalculator.measureTree`, which records every immediate subfolder in the same `fts` pass, so going back or one level deeper needs no new scan. Category scans feed the same cache. Anything that deletes must keep it consistent: `remove` (explorer trash) or `contentsChanged`/`update` (after a cleanup), which drop the subtree and fix ancestor totals by the delta, or forget the ancestors when the delta is unknown. Never record a measurement from a cancelled task, because it is partial.
 - **App state.** `AppState` (`@MainActor @Observable`) owns per-category status, the confirmation dialog, toasts and launch-at-login (`SMAppService`). Every destructive action goes through `pendingConfirmation`, an in-window overlay, instead of `NSAlert`: an alert steals focus and closes the `MenuBarExtra` window. `ExplorerModel` lists a directory with `DirectoryLister`, then measures subdirectories with at most 4 in flight, re-sorting by size as results arrive. Packages (`.app` etc.) count as leaves.
 - **Empty Trash fallback.** Without Full Disk Access, `~/.Trash` can't be read. `Cleaner` then empties it through Finder AppleScript (`osascript`), which is why `Resources/Info.plist` has `NSAppleEventsUsageDescription`.
+
+### Localization
+
+- User-facing strings are written in English in code: SwiftUI literals (`Text`, `Button`, `.help`…) and `String(localized:)` for every `String` shown to the user, DiskCore category titles and errors included. Anything passed to `Text` as a `String` variable shows verbatim, so localize it where it's built.
+- `Resources/Localizable.xcstrings` holds the pt-BR translations. After adding or changing a string, run `make strings`, then fill in the pt-BR value. Its keys come from the compiler (`-emit-localized-strings`), so interpolations get real format specifiers (`%@`, `%lld`, `%d`). `xcstringstool extract` doesn't work here, because it emits `%arg` keys that never match at runtime.
+- `LocalizationTests` fails when a key has no translated pt-BR value or its placeholders differ. CI runs `make strings-check`, which fails when the catalog is out of sync with the code.
+- `build-app.sh` compiles `Resources/*.xcstrings` into `.lproj` folders inside the app. `InfoPlist.xcstrings` translates the `Info.plist` privacy strings.
 
 ### Packaging
 

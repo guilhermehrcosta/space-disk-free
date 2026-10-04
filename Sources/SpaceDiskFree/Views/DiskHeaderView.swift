@@ -7,7 +7,7 @@ struct DiskHeaderView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
-                Label(state.volume?.name ?? "Disco", systemImage: "internaldrive")
+                Label(state.volume?.name ?? String(localized: "Disk"), systemImage: "internaldrive")
                     .font(.headline)
                 Spacer()
                 if state.isScanning {
@@ -21,20 +21,20 @@ struct DiskHeaderView: View {
                         Image(systemName: "arrow.clockwise")
                     }
                     .buttonStyle(.borderless)
-                    .help("Analisar novamente")
+                    .help("Analyze again")
                 }
             }
 
             if let volume = state.volume {
                 UsageBar(fraction: volume.usedFraction)
                 HStack {
-                    Text("\(volume.availableBytes.formattedBytes) disponíveis")
+                    Text("\(volume.availableBytes.formattedBytes) available")
                         .fontWeight(.medium)
-                    Text("de \(volume.totalBytes.formattedBytes)")
+                    Text("of \(volume.totalBytes.formattedBytes)")
                         .foregroundStyle(.secondary)
                     Spacer()
                     if state.reclaimableBytes > 0 {
-                        Text("\(state.reclaimableBytes.formattedBytes) recuperáveis")
+                        Text("\(state.reclaimableBytes.formattedBytes) reclaimable")
                             .foregroundStyle(.green)
                     }
                 }
@@ -65,7 +65,7 @@ private struct UsageBar: View {
             }
         }
         .frame(height: 8)
-        .accessibilityLabel("Uso do disco")
+        .accessibilityLabel("Disk usage")
         .accessibilityValue(Text(fraction, format: .percent.precision(.fractionLength(0))))
     }
 }
