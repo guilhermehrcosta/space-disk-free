@@ -1,77 +1,91 @@
 # Space Disk Free
 
-App de barra de menus para macOS que mostra onde o espaço em disco está sendo consumido e oferece limpeza segura.
+A macOS menu bar app that shows where your disk space is going and cleans it up safely.
 
-- **Ícone na barra de menus** com o espaço livre (fica em alerta acima de 90% de uso).
-- **Limpeza**: categorias conhecidas (Lixeira, caches, logs, Xcode, simuladores, npm/Gradle/Cargo/Maven, Go, imagens de emulador Android, Homebrew, Docker (inclusive restos do Docker Desktop desinstalado), backups de iPhone, Downloads) com tamanho e ação de um clique, sempre com confirmação.
-- **Explorar**: maiores pastas da pasta pessoal, do disco inteiro ou de qualquer pasta, com navegação por níveis, "Mostrar no Finder" e "Mover para a Lixeira".
+<p align="center">
+  <img src="docs/screenshot.png" alt="Space Disk Free menu bar window showing cleanup categories sorted by size" width="420">
+</p>
 
-Requer macOS 14+.
+- **Menu bar icon** with the free space on your disk. The icon switches to a warning above 90% usage.
+- **Cleanup tab**: known space hogs, sorted by size, each with a one-click action that always asks for confirmation:
+  - Trash, app caches, logs
+  - Xcode: DerivedData, Device Support, Archives, unavailable simulators
+  - npm, pnpm, Gradle, Cargo, Maven, Go
+  - Android emulator system images
+  - Homebrew
+  - Docker (Docker Desktop, Rancher Desktop, Colima), plus leftovers from an uninstalled Docker Desktop
+  - iPhone/iPad backups and Downloads (review only)
+- **Explore tab**: the largest folders in your home, the whole disk, or any folder you pick. You can drill down level by level, reveal items in Finder or move them to the Trash. Sizes are cached, so going back is instant.
 
-## Instalar
+Requires macOS 14 or later. The interface is in Brazilian Portuguese.
 
-Baixe o `SpaceDiskFree-<versão>.dmg` em **Releases**, abra-o e arraste o app para **Aplicativos**.
+## Install
 
-O app não é assinado com Developer ID, então o macOS bloqueia a primeira abertura. Para liberar, tente abrir o app uma vez, vá em **Ajustes do Sistema › Privacidade e Segurança** e clique em **Abrir Mesmo Assim**. Também dá para liberar pelo Terminal:
+Download `SpaceDiskFree-<version>.dmg` from **Releases**, open it and drag the app into **Applications**. The build is universal (Apple Silicon and Intel).
+
+The app is not signed with a Developer ID, so macOS blocks the first launch. To allow it, try to open the app once, then go to **System Settings › Privacy & Security** and click **Open Anyway**. You can also run this in Terminal:
 
 ```sh
 xattr -dr com.apple.quarantine "/Applications/Space Disk Free.app"
 ```
 
-## Publicar uma versão
+## Permissions
 
-No GitHub, crie um release com uma tag `vX.Y.Z` e publique. A action [release.yml](.github/workflows/release.yml) roda os testes, gera o `.dmg` universal (Apple Silicon e Intel) e anexa ao release.
+The app is not sandboxed, because it has to read your whole home folder. Without **Full Disk Access**, macOS blocks some folders (Mail, Safari, other apps' containers, `~/.Trash`). When that happens, the app shows a banner with a shortcut to *System Settings › Privacy & Security › Full Disk Access*. Restart the app after granting it.
 
-## Compilar e rodar
+## Safety
 
-Requer o Xcode.
+- `SafetyPolicy` refuses to touch your home folder, `~/Library`, Documents, Desktop, iCloud Drive (`Mobile Documents`), `Application Support`, `Containers` and similar folders. It also refuses anything outside your home folder, except apps in `/Applications`, which can only be moved to the Trash.
+- Symlinks are resolved before deleting, so a link can't redirect a cleanup outside your home folder.
+- Items removed from the Explore tab always go to the Trash.
+- Docker, Go, Homebrew and simulators are cleaned with their own tools (`docker system prune`, `go clean`, `brew cleanup`, `xcrun simctl`) instead of deleting their files directly.
+
+## Build from source
+
+Requires Xcode.
 
 ```sh
-make run       # compila e abre build/Space Disk Free.app
-make install   # copia para /Applications e abre
-make dmg       # gera build/SpaceDiskFree-<versão>.dmg universal
-make test      # testes do DiskCore (Swift Testing)
-make icon      # redesenha o ícone (Scripts/make-icon.swift)
-make lint      # swift format lint (o CI usa o mesmo)
-make format    # formata o código
+make run       # build and open build/Space Disk Free.app
+make install   # copy to /Applications and open
+make dmg       # universal build/SpaceDiskFree-<version>.dmg
+make test      # DiskCore tests (Swift Testing)
+make lint      # swift format lint, same as CI
+make format    # format the code
+make icon      # redraw Resources/AppIcon.icns from Scripts/make-icon.swift
 ```
 
-## Arquitetura
+The ad-hoc signature changes on every build, so macOS may ask for Full Disk Access again after rebuilding.
+
+## Release
+
+Create a GitHub release with a `vX.Y.Z` tag and publish it. The [release workflow](.github/workflows/release.yml) runs the tests, builds the universal `.dmg` and attaches it to the release.
+
+## Architecture
 
 ```
 Sources/
-  DiskCore/            # lógica pura, sem UI, coberta por testes
-    SizeCalculator     # tamanho alocado via fts(3): rápido, sem seguir symlinks, sem cruzar volumes, hard links contados 1x
-    CleanupCategory    # catálogo de categorias e estratégia de cada uma
-    Cleaner            # executa a limpeza e mede o espaço liberado
-    SafetyPolicy       # o que nunca pode ser apagado, independente da UI
-    DirectoryLister    # filhos diretos de uma pasta, para o explorador
-    VolumeStatus       # capacidade e espaço livre do volume
-  SpaceDiskFree/       # app SwiftUI (MenuBarExtra)
-    AppState           # estado principal, varredura das categorias, confirmações
-    ExplorerModel      # navegação e medição paralela (4 por vez) das subpastas
+  DiskCore/              UI-free logic, covered by tests
+    SizeCalculator       allocated size via fts(3); no symlink following, no volume crossing, hard links counted once
+    DirectorySizeCache   explorer size cache, kept consistent after deletes
+    CleanupCategory      catalog of categories and their cleanup actions
+    Cleaner              runs a cleanup and measures the reclaimed space
+    SafetyPolicy         what can never be deleted, whatever the UI asks
+    AndroidSDK           system images and which ones emulators still use
+    DirectoryLister      direct children of a folder, for the explorer
+    VolumeStatus         disk capacity and free space
+  SpaceDiskFree/         SwiftUI app (MenuBarExtra)
+    AppState             category scans, confirmations, launch at login
+    ExplorerModel        navigation and parallel folder measurement
     Views/
 ```
 
-### Estratégias de limpeza
+### Cleanup strategies
 
-| Estratégia       | Efeito                                         | Usada em                                  |
-|------------------|------------------------------------------------|-------------------------------------------|
-| `deleteContents` | apaga permanentemente o conteúdo, mantém a pasta | caches, logs, DerivedData, Device Support |
-| `deleteItems`    | apaga itens específicos dentro das pastas da categoria | imagens Android sem emulador |
-| `trashContents`  | move para a Lixeira (reversível)               | Xcode Archives                            |
-| `emptyTrash`     | esvazia a Lixeira (via Finder se sem permissão) | Lixeira                                   |
-| `command`        | roda a ferramenta oficial num shell de login    | `brew cleanup`, `simctl`, `docker prune`  |
-| `review`         | nada automático, abre no Explorar               | Downloads, backups de iPhone              |
-
-### Segurança
-
-- `SafetyPolicy` bloqueia a home, `~/Library`, Documentos, Mesa, iCloud Drive (`Mobile Documents`), `Application Support`, `Containers` etc., e qualquer coisa fora da home (exceto apps em `/Applications`, que só podem ir para a Lixeira).
-- Symlinks são resolvidos antes de apagar, para que um link não leve a limpeza para fora da home.
-- Itens apagados pelo Explorar sempre vão para a Lixeira.
-
-## Permissões
-
-O app não usa sandbox, já que precisa ler a home inteira. Sem **Acesso Total ao Disco**, o macOS bloqueia algumas pastas (Mail, Safari, containers de outros apps, `~/.Trash`). Nesse caso o app mostra um aviso com atalho para *Ajustes do Sistema › Privacidade e Segurança › Acesso Total ao Disco*.
-
-> A assinatura é ad-hoc. Cada recompilação gera uma nova identidade, e o macOS pode pedir as permissões de novo.
+| Strategy         | Effect                                                  | Used by                                     |
+|------------------|---------------------------------------------------------|---------------------------------------------|
+| `deleteContents` | permanently deletes a folder's contents, keeps the folder | caches, logs, DerivedData, Device Support   |
+| `deleteItems`    | deletes specific items inside the category's folders     | Android images no emulator uses             |
+| `trashContents`  | moves contents to the Trash (reversible)                 | Xcode Archives, Docker Desktop leftovers    |
+| `emptyTrash`     | empties the Trash (through Finder without Full Disk Access) | Trash                                    |
+| `command`        | runs the tool's own cleanup in a login shell             | `brew`, `simctl`, `docker`, `go`            |
+| `review`         | nothing automatic, opens the folder in Explore           | Downloads, iPhone backups                   |
