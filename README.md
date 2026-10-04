@@ -12,6 +12,7 @@ A macOS menu bar app that shows where your disk space is going and cleans it up 
   - Xcode: DerivedData, Device Support, Archives, unavailable simulators
   - npm, pnpm, Gradle, Cargo, Maven, Go
   - Android emulator system images
+  - LM Studio models, one by one
   - Homebrew
   - Docker (Docker Desktop, Rancher Desktop, Colima), plus leftovers from an uninstalled Docker Desktop
   - iPhone/iPad backups and Downloads (review only)
@@ -72,6 +73,7 @@ Sources/
     Cleaner              runs a cleanup and measures the reclaimed space
     SafetyPolicy         what can never be deleted, whatever the UI asks
     AndroidSDK           system images and which ones emulators still use
+    LMStudio             downloaded models, from the folder set in LM Studio
     DirectoryLister      direct children of a folder, for the explorer
     VolumeStatus         disk capacity and free space
   SpaceDiskFree/         SwiftUI app (MenuBarExtra)
@@ -85,7 +87,7 @@ Sources/
 | Strategy         | Effect                                                  | Used by                                     |
 |------------------|---------------------------------------------------------|---------------------------------------------|
 | `deleteContents` | permanently deletes a folder's contents, keeps the folder | caches, logs, DerivedData, Device Support   |
-| `deleteItems`    | deletes specific items inside the category's folders     | Android images no emulator uses             |
+| `deleteItems`    | deletes specific items inside the category's folders     | Android images, LM Studio models            |
 | `trashContents`  | moves contents to the Trash (reversible)                 | Xcode Archives, Docker Desktop leftovers    |
 | `emptyTrash`     | empties the Trash (through Finder without Full Disk Access) | Trash                                    |
 | `command`        | runs the tool's own cleanup in a login shell             | `brew`, `simctl`, `docker`, `go`            |
