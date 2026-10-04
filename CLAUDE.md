@@ -4,6 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Space Disk Free is a macOS 14+ menu bar app (SwiftUI `MenuBarExtra`, `LSUIElement`) that shows what is using disk space and cleans it up. The UI text and user-facing docs are in Brazilian Portuguese, so keep new strings in pt-BR.
 
+## Conventions
+
+- Don't write code comments (`//`, `///`, or `#` explanations in scripts, Makefile and YAML). Explain the reasoning in the PR description. `// swift-tools-version` in `Package.swift` and the shebangs are syntax, not comments.
+- Every change goes on a branch and is delivered as a pull request. Never commit directly to `main`.
+- Commits and PRs carry no Claude attribution (no `Co-Authored-By`, no "Generated with Claude Code").
+
 ## Commands
 
 ```sh

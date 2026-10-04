@@ -1,5 +1,3 @@
-// Gera Resources/AppIcon.icns desenhando o ícone com AppKit.
-// Uso: swift Scripts/make-icon.swift   (ou `make icon`)
 import AppKit
 
 let canvas: CGFloat = 1024
@@ -27,8 +25,6 @@ func draw(_ image: NSImage, centeredAt center: NSPoint) {
     image.draw(in: NSRect(x: center.x - size.width / 2, y: center.y - size.height / 2, width: size.width, height: size.height))
 }
 
-/// Desenha o ícone num espaço de 1024×1024 pontos, seguindo a grade de ícones do macOS
-/// (corpo de 824 pt centralizado, cantos arredondados e sombra suave).
 func drawIcon() {
     let body = NSRect(x: 100, y: 100, width: 824, height: 824)
     let shape = NSBezierPath(roundedRect: body, xRadius: 185, yRadius: 185)
@@ -46,14 +42,12 @@ func drawIcon() {
     NSGradient(colors: [color(0x38BDF8), color(0x2563EB), color(0x312E81)])!
         .draw(in: shape, angle: -90)
 
-    // Brilho sutil na metade de cima.
     NSGraphicsContext.saveGraphicsState()
     shape.addClip()
     NSGradient(colors: [color(0xFFFFFF, alpha: 0.18), color(0xFFFFFF, alpha: 0)])!
         .draw(in: NSRect(x: body.minX, y: body.midY, width: body.width, height: body.height / 2), angle: -90)
     NSGraphicsContext.restoreGraphicsState()
 
-    // Anel de uso do disco: trilho translúcido e arco preenchido.
     let center = NSPoint(x: canvas / 2, y: canvas / 2 - 6)
     let radius: CGFloat = 268
     let lineWidth: CGFloat = 58
@@ -73,7 +67,6 @@ func drawIcon() {
 
     draw(symbol("internaldrive.fill", pointSize: 230, weight: .semibold, colors: [.white]), centeredAt: center)
 
-    // Brilho de "limpo" sobre o anel, no canto superior direito.
     draw(
         symbol("sparkle", pointSize: 150, weight: .bold, colors: [color(0xFDE68A)]),
         centeredAt: NSPoint(x: center.x + radius * 0.72, y: center.y + radius * 0.72)
@@ -112,7 +105,6 @@ try iconutil.run()
 iconutil.waitUntilExit()
 guard iconutil.terminationStatus == 0 else { fatalError("iconutil falhou") }
 
-// Prévia em PNG para revisar o desenho sem abrir o .icns.
 if let preview = ProcessInfo.processInfo.environment["ICON_PREVIEW"] {
     try png(pixels: 1024).write(to: URL(filePath: preview))
 }

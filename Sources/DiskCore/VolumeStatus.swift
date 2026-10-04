@@ -3,7 +3,6 @@ import Foundation
 public struct VolumeStatus: Sendable, Equatable {
     public let name: String
     public let totalBytes: UInt64
-    /// Espaço disponível como o Finder mostra (inclui espaço "purgeable" que o sistema libera sozinho).
     public let availableBytes: UInt64
 
     public var usedBytes: UInt64 { totalBytes > availableBytes ? totalBytes - availableBytes : 0 }

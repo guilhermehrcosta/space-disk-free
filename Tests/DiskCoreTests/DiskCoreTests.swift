@@ -146,7 +146,6 @@ struct CleanerTests {
     }
 }
 
-/// Diretório temporário apagado ao sair de escopo. Usa o caminho real (sem o symlink /var → /private/var).
 final class TemporaryDirectory {
     let url: URL
 
@@ -253,7 +252,6 @@ struct DirectorySizeCacheTests {
 }
 
 struct AndroidSDKTests {
-    /// Monta um SDK falso com três imagens e um AVD usando a de API 33.
     func makeHome() throws -> TemporaryDirectory {
         let home = try TemporaryDirectory()
         let fm = FileManager.default

@@ -20,7 +20,6 @@ struct CleanupListView: View {
         }
     }
 
-    /// Maiores primeiro, para destacar onde está o espaço.
     private var sortedCategories: [CleanupCategory] {
         state.categories.sorted {
             (state.status[$0.id]?.size ?? 0) > (state.status[$1.id]?.size ?? 0)

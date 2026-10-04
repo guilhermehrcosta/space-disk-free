@@ -50,8 +50,6 @@ final class AppState {
         }
     }
 
-    // MARK: - Derivados
-
     var isScanning: Bool { status.values.contains { $0.isScanning } }
 
     var needsFullDiskAccess: Bool {
@@ -65,13 +63,10 @@ final class AppState {
             .reduce(0, +)
     }
 
-    // MARK: - Varredura
-
     func refreshVolume() {
         volume = VolumeStatus.current()
     }
 
-    /// Chamado ao abrir o menu: só refaz a varredura se a última tiver mais de 5 minutos.
     func refreshIfStale() {
         refreshVolume()
         if let lastScan, Date.now.timeIntervalSince(lastScan) < 300 { return }
@@ -94,7 +89,6 @@ final class AppState {
                 for await (id, measurements) in group {
                     guard !Task.isCancelled else { return }
                     apply(measurements, to: id)
-                    // As mesmas pastas aparecem no explorador: aproveita a medição.
                     for (url, measurement) in measurements { explorer.record(url, measurement) }
                 }
             }
@@ -120,8 +114,6 @@ final class AppState {
         status[id]?.isScanning = false
     }
 
-    // MARK: - Limpeza
-
     func requestCleanup(_ category: CleanupCategory, action: CleanupAction? = nil) {
         let action = action ?? category.actions[0]
         let size = status[category.id]?.size?.formattedBytes ?? "?"
@@ -143,7 +135,6 @@ final class AppState {
             }
         if case .review = action.strategy { return }
 
-        // "Remover volumes sem uso…" vira "Docker: Remover volumes sem uso?".
         let actionTitle = action.title.trimmingCharacters(in: CharacterSet(charactersIn: "…"))
         pendingConfirmation = Confirmation(
             title: category.actions.count > 1 ? "\(category.title): \(actionTitle)?" : "Limpar \(category.title)?",
@@ -167,8 +158,6 @@ final class AppState {
         await rescan(category)
         refreshVolume()
 
-        // Ferramentas como o Docker devolvem o espaço ao macOS aos poucos (o Docker.raw
-        // encolhe depois do prune). Mede de novo um pouco depois para mostrar o valor real.
         if case .command = action.strategy {
             Task { [weak self] in
                 try? await Task.sleep(for: .seconds(120))
@@ -180,8 +169,6 @@ final class AppState {
 
     private static func summary(of report: CleanupReport, category: CleanupCategory) -> String {
         if let error = report.commandError { return "\(category.title): \(error)" }
-        // Comandos externos costumam informar quanto liberaram; pouco espaço medido na hora
-        // geralmente significa que o espaço ainda vai ser devolvido (ex.: Docker).
         if let output = report.commandOutput, report.reclaimedBytes < 1_000_000 {
             return "\(category.title): \(output)"
         }
@@ -222,8 +209,6 @@ final class AppState {
             showToast("Não foi possível mover: \(error.localizedDescription)")
         }
     }
-
-    // MARK: - Sistema
 
     func reveal(_ url: URL) {
         NSWorkspace.shared.activateFileViewerSelecting([url])

@@ -1,15 +1,10 @@
 import Foundation
 
 public struct CleanupReport: Sendable, Equatable {
-    /// Bytes que deixaram as pastas da categoria.
     public var reclaimedBytes: UInt64 = 0
-    /// Os itens foram para a Lixeira, então o espaço só é liberado ao esvaziá-la.
     public var movedToTrash = false
-    /// Nomes de itens que não puderam ser removidos (em uso, protegidos pelo sistema, sem permissão).
     public var failures: [String] = []
-    /// Saída de erro de um comando externo, quando houver.
     public var commandError: String?
-    /// Última linha da saída de um comando bem-sucedido (ex.: "Total reclaimed space: 3GB").
     public var commandOutput: String?
 
     public var succeeded: Bool { failures.isEmpty && commandError == nil }
@@ -34,7 +29,6 @@ public struct Cleaner: Sendable {
         self.policy = policy
     }
 
-    /// Executa `action` (por padrão, a ação principal) sobre as pastas da categoria.
     public func run(_ category: CleanupCategory, action: CleanupAction? = nil) async throws -> CleanupReport {
         let action = action ?? category.actions[0]
         guard category.actions.contains(action) else { throw CleanerError.unknownAction(action.id) }
@@ -73,7 +67,6 @@ public struct Cleaner: Sendable {
         return report
     }
 
-    /// Move um único item para a Lixeira (usado pela aba Explorar).
     public func trash(_ url: URL) throws {
         guard policy.canTrash(url) else {
             throw CleanerError.blockedBySafetyPolicy(url.path(percentEncoded: false))
@@ -87,7 +80,6 @@ public struct Cleaner: Sendable {
             let path = item.resolvingSymlinksInPath().normalizedPath
             return rootPaths.first { path.hasPrefix($0 + "/") }
         }
-        // Valida tudo antes de apagar qualquer coisa.
         for item in items where root(of: item) == nil {
             throw CleanerError.blockedBySafetyPolicy(item.path(percentEncoded: false))
         }
@@ -106,7 +98,6 @@ public struct Cleaner: Sendable {
         return failures
     }
 
-    /// Remove pastas que ficaram vazias (ignorando .DS_Store) entre `item` e a raiz da categoria.
     private func removeEmptyParents(of item: URL, upTo rootPath: String) {
         var parent = item.deletingLastPathComponent()
         while parent.normalizedPath.hasPrefix(rootPath + "/") {
@@ -146,7 +137,6 @@ public struct Cleaner: Sendable {
         if readable {
             for path in paths { report.failures += removeContents(of: path) }
         } else {
-            // Sem Acesso Total ao Disco a ~/.Trash não é legível; o Finder consegue esvaziá-la.
             let result = await Shell.run(#"osascript -e 'tell application "Finder" to empty trash'"#)
             if !result.succeeded { report.commandError = result.lastLine ?? "Falhou." }
         }
@@ -157,11 +147,9 @@ public struct Cleaner: Sendable {
 enum Shell {
     struct Result {
         var succeeded: Bool
-        /// Última linha não vazia da saída (stdout + stderr), ou a explicação do erro.
         var lastLine: String?
     }
 
-    /// Executa `command` num zsh de login (para herdar o PATH do usuário, ex.: Homebrew).
     static func run(_ command: String) async -> Result {
         await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
@@ -179,7 +167,6 @@ enum Shell {
         process.standardError = output
 
         do { try process.run() } catch { return Result(succeeded: false, lastLine: error.localizedDescription) }
-        // Ler até EOF antes de esperar evita travar quando a saída enche o buffer do pipe.
         let data = output.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
 

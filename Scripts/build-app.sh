@@ -1,10 +1,4 @@
 #!/usr/bin/env bash
-# Compila em release e monta "build/Space Disk Free.app" (assinatura ad-hoc).
-#
-# Variáveis opcionais:
-#   ARCHS="arm64 x86_64"  arquiteturas do binário (padrão: só a da máquina)
-#   VERSION=1.2.0         CFBundleShortVersionString (padrão: o do Info.plist)
-#   BUILD_NUMBER=42       CFBundleVersion (padrão: o do Info.plist)
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -15,13 +9,10 @@ APP_DIR="build/${APP_NAME}.app"
 ARCHS="${ARCHS:-$(uname -m)}"
 
 SWIFT_FLAGS=(-c release)
-# Só com as Command Line Tools o backend padrão do SwiftPM (Swift Build) não inicializa.
 if [[ "$(xcode-select -p)" == *CommandLineTools* ]]; then
     SWIFT_FLAGS+=(--build-system native)
 fi
 
-# Compila cada arquitetura separadamente e junta com lipo (funciona com ou sem Xcode).
-# Cada binário é copiado na hora: com o Xcode, todas as arquiteturas saem na mesma pasta.
 SLICES_DIR="$(mktemp -d)"
 trap 'rm -rf "$SLICES_DIR"' EXIT
 for arch in $ARCHS; do

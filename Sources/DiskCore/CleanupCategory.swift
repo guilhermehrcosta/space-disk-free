@@ -1,26 +1,17 @@
 import Foundation
 
 public enum CleanupStrategy: Sendable, Equatable {
-    /// Apaga permanentemente o conteúdo das pastas (mantém as pastas). Só para dados regeneráveis.
     case deleteContents
-    /// Move o conteúdo das pastas para a Lixeira (reversível).
     case trashContents
-    /// Apaga permanentemente itens específicos, que precisam estar dentro das pastas da categoria.
-    /// Pastas que ficarem vazias depois disso também são removidas.
     case deleteItems([URL])
-    /// Esvazia a Lixeira do usuário.
     case emptyTrash
-    /// Executa uma ferramenta oficial de limpeza (ex.: `brew cleanup`) num shell de login.
     case command(String)
-    /// Não limpa automaticamente: o usuário revisa os itens na aba Explorar.
     case review
 }
 
-/// Uma forma de limpar uma categoria. Categorias com mais de uma ação mostram um menu.
 public struct CleanupAction: Identifiable, Sendable, Equatable {
     public let id: String
     public let title: String
-    /// Explicação extra mostrada na confirmação.
     public let detail: String?
     public let strategy: CleanupStrategy
 
@@ -38,7 +29,6 @@ public struct CleanupCategory: Identifiable, Sendable, Equatable {
     public let detail: String
     public let symbol: String
     public let paths: [URL]
-    /// A primeira é a ação principal. Nunca vazio.
     public let actions: [CleanupAction]
 
     public init(id: String, title: String, detail: String, symbol: String, paths: [URL], actions: [CleanupAction]) {
@@ -58,14 +48,11 @@ public struct CleanupCategory: Identifiable, Sendable, Equatable {
         )
     }
 
-    /// Estratégia da ação principal.
     public var strategy: CleanupStrategy { actions[0].strategy }
 
-    /// Entra no total "recuperável" apenas o que a própria categoria consegue liberar por inteiro.
     public var countsTowardReclaimable: Bool {
         switch strategy {
         case .deleteContents, .trashContents, .emptyTrash: true
-        // Apaga só parte do que foi medido: contar tudo superestimaria o recuperável.
         case .deleteItems, .command, .review: false
         }
     }
@@ -78,7 +65,6 @@ public struct CleanupCategory: Identifiable, Sendable, Equatable {
 }
 
 extension CleanupCategory {
-    /// - Parameter isAppInstalled: recebe o nome do bundle (ex.: "Docker.app"); injetável para testes.
     public static func defaults(
         home: URL,
         isAppInstalled: (String) -> Bool = { isInstalledInApplications($0) }
@@ -87,7 +73,6 @@ extension CleanupCategory {
 
         let dockerDesktopData = h("Library/Containers/com.docker.docker/Data")
         let dockerDesktopInstalled = isAppInstalled("Docker.app")
-        // Discos das VMs que rodam o engine Docker. O `docker` CLI limpa o engine do contexto atual.
         let dockerEngineDisks =
             (dockerDesktopInstalled ? [dockerDesktopData] : [])
             + [h("Library/Application Support/rancher-desktop/lima"), h(".colima")]
@@ -164,7 +149,6 @@ extension CleanupCategory {
                 detail: "Módulos baixados (~/go/pkg/mod) e cache de build. Baixados de novo sob demanda.",
                 symbol: "g.circle",
                 paths: [h("go/pkg/mod"), h("Library/Caches/go-build")],
-                // Os módulos são somente leitura; só o próprio `go` consegue apagá-los.
                 strategy: .command("go clean -modcache -cache")
             ),
             CleanupCategory(
@@ -225,8 +209,6 @@ extension CleanupCategory {
 
         if let android = androidSystemImagesCategory(home: home) { categories.append(android) }
 
-        // Dados de um Docker Desktop que já foi desinstalado: o Docker.raw fica para trás e
-        // nenhum `docker prune` alcança, pois o CLI aponta para outro engine (ou para nenhum).
         if !dockerDesktopInstalled {
             categories.append(
                 CleanupCategory(
@@ -282,7 +264,6 @@ extension CleanupCategory {
         )
     }
 
-    /// Procura o app em /Applications e ~/Applications.
     public static func isInstalledInApplications(_ bundleName: String) -> Bool {
         let home = FileManager.default.homeDirectoryForCurrentUser
         return [URL(filePath: "/Applications"), home.appending(path: "Applications")].contains {

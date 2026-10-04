@@ -21,7 +21,6 @@ struct SpaceDiskFreeApp: App {
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Garante que não apareça no Dock mesmo rodando via `swift run` (fora do .app com LSUIElement).
         NSApp.setActivationPolicy(.accessory)
     }
 }

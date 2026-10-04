@@ -12,10 +12,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # swift-format não compila o código, então roda em Linux (minutos macOS custam 10x).
   lint:
     runs-on: ubuntu-latest
-    container: swift:6.4  # mesma versão do swift-format usado localmente
+    container: swift:6.4
     steps:
       - uses: actions/checkout@v7
       - run: swift format lint --strict --recursive --parallel Package.swift Sources Tests
