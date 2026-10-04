@@ -16,6 +16,7 @@ A macOS menu bar app that shows where your disk space is going and cleans it up 
   - Homebrew
   - Docker (Docker Desktop, Rancher Desktop, Colima), plus leftovers from an uninstalled Docker Desktop
   - iPhone/iPad backups and Downloads (review only)
+- **Reclaimable total** in the header. Click its ⓘ to see which categories it adds up, which are left out and why.
 - **Explore tab**: the largest folders in your home, the whole disk, or any folder you pick. You can drill down level by level, reveal items in Finder or move them to the Trash. Sizes are cached, so going back is instant.
 
 Requires macOS 14 or later. Available in English and Brazilian Portuguese. The app follows the system language, and you can also pick a language just for this app in *System Settings › General › Language & Region › Applications*.

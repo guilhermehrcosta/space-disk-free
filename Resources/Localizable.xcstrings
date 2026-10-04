@@ -197,6 +197,16 @@
         }
       }
     },
+    "Caches grow back, and files in use or protected by macOS are kept, so the space freed may be smaller.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caches voltam a crescer, e arquivos em uso ou protegidos pelo macOS são mantidos, então o espaço liberado pode ser menor."
+          }
+        }
+      }
+    },
     "Cancel": {
       "localizations": {
         "pt-BR": {
@@ -679,6 +689,16 @@
         }
       }
     },
+    "Not included: %@.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não entram: %@."
+          }
+        }
+      }
+    },
     "Old downloads and outdated versions (brew cleanup --prune=all).": {
       "localizations": {
         "pt-BR": {
@@ -755,6 +775,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Recalcular esta pasta"
+          }
+        }
+      }
+    },
+    "Reclaimable with one click": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recuperável com um clique"
           }
         }
       }
@@ -839,6 +869,16 @@
         }
       }
     },
+    "Show what is included": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar o que entra na conta"
+          }
+        }
+      }
+    },
     "Simulators": {
       "localizations": {
         "pt-BR": {
@@ -889,6 +929,16 @@
         }
       }
     },
+    "They are only for review, depend on how much their tool frees, or let you choose item by item.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Essas são só para revisar, dependem de quanto a ferramenta delas libera, ou você escolhe item por item."
+          }
+        }
+      }
+    },
     "This will run:": {
       "localizations": {
         "pt-BR": {
@@ -905,6 +955,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ferramenta não encontrada."
+          }
+        }
+      }
+    },
+    "Total": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total"
           }
         }
       }

@@ -34,14 +34,81 @@ struct DiskHeaderView: View {
                         .foregroundStyle(.secondary)
                     Spacer()
                     if state.reclaimableBytes > 0 {
-                        Text("\(state.reclaimableBytes.formattedBytes) reclaimable")
-                            .foregroundStyle(.green)
+                        ReclaimableButton()
                     }
                 }
                 .font(.callout)
                 .monospacedDigit()
             }
         }
+    }
+}
+
+private struct ReclaimableButton: View {
+    @Environment(AppState.self) private var state
+    @State private var isShowingBreakdown = false
+
+    var body: some View {
+        Button {
+            isShowingBreakdown.toggle()
+        } label: {
+            HStack(spacing: 3) {
+                Text("\(state.reclaimableBytes.formattedBytes) reclaimable")
+                Image(systemName: "info.circle")
+                    .imageScale(.small)
+            }
+            .foregroundStyle(.green)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("Show what is included")
+        .popover(isPresented: $isShowingBreakdown, arrowEdge: .bottom) {
+            ReclaimableBreakdownView()
+                .environment(state)
+        }
+    }
+}
+
+private struct ReclaimableBreakdownView: View {
+    @Environment(AppState.self) private var state
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Reclaimable with one click")
+                .font(.headline)
+
+            Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 4) {
+                ForEach(state.reclaimableBreakdown, id: \.category.id) { item in
+                    GridRow {
+                        Text(item.category.title)
+                        Text(item.bytes.formattedBytes)
+                            .gridColumnAlignment(.trailing)
+                    }
+                }
+                Divider()
+                    .gridCellUnsizedAxes(.horizontal)
+                GridRow {
+                    Text("Total")
+                    Text(state.reclaimableBytes.formattedBytes)
+                }
+                .fontWeight(.semibold)
+            }
+            .font(.callout)
+            .monospacedDigit()
+
+            VStack(alignment: .leading, spacing: 6) {
+                if !state.excludedFromReclaimable.isEmpty {
+                    Text("Not included: \(state.excludedFromReclaimable.map(\.title).formatted(.list(type: .and))).")
+                    Text("They are only for review, depend on how much their tool frees, or let you choose item by item.")
+                }
+                Text("Caches grow back, and files in use or protected by macOS are kept, so the space freed may be smaller.")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(14)
+        .frame(width: 300)
     }
 }
 
