@@ -98,7 +98,13 @@ private struct CategoryRow: View {
         if category.actions.count > 1 {
             Menu("Limpar") {
                 ForEach(category.actions) { action in
-                    Button(action.title) { state.requestCleanup(category, action: action) }
+                    Button(action.title) {
+                        if case .review = action.strategy {
+                            if let first = category.existingPaths.first { onExplore(first) }
+                        } else {
+                            state.requestCleanup(category, action: action)
+                        }
+                    }
                 }
             }
             .menuStyle(.button)
@@ -126,7 +132,7 @@ private struct CategoryRow: View {
             Button("Esvaziar") { state.requestCleanup(category) }
                 .controlSize(.small)
                 .disabled(isBusy || isEmpty)
-        case .deleteContents, .trashContents:
+        case .deleteContents, .deleteItems, .trashContents:
             Button("Limpar") { state.requestCleanup(category) }
                 .controlSize(.small)
                 .disabled(isBusy || isEmpty)

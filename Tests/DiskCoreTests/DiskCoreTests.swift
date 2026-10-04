@@ -251,3 +251,65 @@ struct DirectorySizeCacheTests {
         #expect(cache.entry(for: URL(filePath: "/Users")) == nil)
     }
 }
+
+struct AndroidSDKTests {
+    /// Monta um SDK falso com três imagens e um AVD usando a de API 33.
+    func makeHome() throws -> TemporaryDirectory {
+        let home = try TemporaryDirectory()
+        let fm = FileManager.default
+        for image in ["android-31/google_apis/arm64-v8a", "android-30/google_apis_playstore/x86_64", "android-33/google_apis/arm64-v8a"] {
+            let dir = home.url.appending(path: "Library/Android/sdk/system-images/\(image)")
+            try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+            try Data(repeating: 1, count: 10_000).write(to: dir.appending(path: "system.img"))
+        }
+        let avd = home.url.appending(path: ".android/avd/Pixel.avd")
+        try fm.createDirectory(at: avd, withIntermediateDirectories: true)
+        try "hw.ram=2048\nimage.sysdir.1=system-images/android-33/google_apis/arm64-v8a/\n"
+            .write(to: avd.appending(path: "config.ini"), atomically: true, encoding: .utf8)
+        return home
+    }
+
+    @Test func findsImagesNotUsedByAnyEmulator() throws {
+        let home = try makeHome()
+        let sdk = AndroidSDK(home: home.url)
+
+        #expect(sdk.installedSystemImages().count == 3)
+        #expect(
+            sdk.unusedSystemImages().map(AndroidSDK.displayName) == [
+                "API 30 · google_apis_playstore · x86_64", "API 31 · google_apis · arm64-v8a",
+            ])
+    }
+
+    @Test func deletesOnlyUnusedImagesAndPrunesEmptyFolders() async throws {
+        let home = try makeHome()
+        let sdk = AndroidSDK(home: home.url)
+        let category = try #require(CleanupCategory.defaults(home: home.url).first { $0.id == "android-system-images" })
+        #expect(category.actions.map(\.id) == ["android-unused-images", "android-all-images", "android-review-images"])
+
+        let report = try await Cleaner(policy: SafetyPolicy(home: home.url)).run(category)
+
+        #expect(report.failures.isEmpty)
+        #expect(report.reclaimedBytes >= 20_000)
+        #expect(sdk.installedSystemImages().map(AndroidSDK.displayName) == ["API 33 · google_apis · arm64-v8a"])
+        let apis = try FileManager.default.contentsOfDirectory(atPath: sdk.systemImagesRoot.path(percentEncoded: false))
+        #expect(apis == ["android-33"])
+    }
+
+    @Test func refusesItemsOutsideTheCategoryFolders() async throws {
+        let home = try makeHome()
+        let outside = home.url.appending(path: "Documents/importante.txt")
+        try FileManager.default.createDirectory(at: outside.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data([1]).write(to: outside)
+        let sdk = AndroidSDK(home: home.url)
+        let category = CleanupCategory(
+            id: "x", title: "X", detail: "", symbol: "x", paths: [sdk.systemImagesRoot],
+            strategy: .deleteItems([sdk.installedSystemImages()[0], outside])
+        )
+
+        await #expect(throws: CleanerError.self) {
+            try await Cleaner(policy: SafetyPolicy(home: home.url)).run(category)
+        }
+        #expect(FileManager.default.fileExists(atPath: outside.path(percentEncoded: false)))
+        #expect(sdk.installedSystemImages().count == 3)
+    }
+}

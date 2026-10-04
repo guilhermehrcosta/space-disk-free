@@ -5,6 +5,9 @@ public enum CleanupStrategy: Sendable, Equatable {
     case deleteContents
     /// Move o conteúdo das pastas para a Lixeira (reversível).
     case trashContents
+    /// Apaga permanentemente itens específicos, que precisam estar dentro das pastas da categoria.
+    /// Pastas que ficarem vazias depois disso também são removidas.
+    case deleteItems([URL])
     /// Esvazia a Lixeira do usuário.
     case emptyTrash
     /// Executa uma ferramenta oficial de limpeza (ex.: `brew cleanup`) num shell de login.
@@ -62,7 +65,8 @@ public struct CleanupCategory: Identifiable, Sendable, Equatable {
     public var countsTowardReclaimable: Bool {
         switch strategy {
         case .deleteContents, .trashContents, .emptyTrash: true
-        case .command, .review: false
+        // Apaga só parte do que foi medido: contar tudo superestimaria o recuperável.
+        case .deleteItems, .command, .review: false
         }
     }
 
@@ -219,6 +223,8 @@ extension CleanupCategory {
             ),
         ]
 
+        if let android = androidSystemImagesCategory(home: home) { categories.append(android) }
+
         // Dados de um Docker Desktop que já foi desinstalado: o Docker.raw fica para trás e
         // nenhum `docker prune` alcança, pois o CLI aponta para outro engine (ou para nenhum).
         if !dockerDesktopInstalled {
@@ -234,6 +240,46 @@ extension CleanupCategory {
             )
         }
         return categories
+    }
+
+    private static func androidSystemImagesCategory(home: URL) -> CleanupCategory? {
+        let sdk = AndroidSDK(home: home)
+        let installed = sdk.installedSystemImages()
+        guard !installed.isEmpty else { return nil }
+
+        let unused = sdk.unusedSystemImages()
+        var actions: [CleanupAction] = []
+        if !unused.isEmpty {
+            actions.append(
+                CleanupAction(
+                    id: "android-unused-images",
+                    title: unused.count == installed.count
+                        ? "Apagar imagens sem emulador (todas)" : "Apagar imagens sem emulador (\(unused.count) de \(installed.count))",
+                    detail: "Nenhum emulador (AVD) usa:\n" + unused.map { "• " + AndroidSDK.displayName(of: $0) }.joined(separator: "\n"),
+                    strategy: .deleteItems(unused)
+                )
+            )
+        }
+        if unused.count < installed.count {
+            actions.append(
+                CleanupAction(
+                    id: "android-all-images",
+                    title: "Apagar todas as imagens",
+                    detail: "Emuladores existentes param de abrir até a imagem ser baixada de novo pelo SDK Manager do Android Studio.",
+                    strategy: .deleteContents
+                )
+            )
+        }
+        actions.append(CleanupAction(id: "android-review-images", title: "Escolher no Explorar…", strategy: .review))
+
+        return CleanupCategory(
+            id: "android-system-images",
+            title: "Android: imagens de sistema",
+            detail: "Imagens dos emuladores Android (\(installed.count) instaladas). Podem ser baixadas de novo pelo SDK Manager.",
+            symbol: "smartphone",
+            paths: [sdk.systemImagesRoot],
+            actions: actions
+        )
     }
 
     /// Procura o app em /Applications e ~/Applications.

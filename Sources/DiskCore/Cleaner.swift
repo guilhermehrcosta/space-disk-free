@@ -50,6 +50,8 @@ public struct Cleaner: Sendable {
         switch action.strategy {
         case .deleteContents:
             for path in paths { report.failures += removeContents(of: path) }
+        case .deleteItems(let items):
+            report.failures = try deleteItems(items, within: paths)
         case .trashContents:
             report.movedToTrash = true
             for path in paths { report.failures += trashContents(of: path) }
@@ -77,6 +79,42 @@ public struct Cleaner: Sendable {
             throw CleanerError.blockedBySafetyPolicy(url.path(percentEncoded: false))
         }
         try FileManager.default.trashItem(at: url, resultingItemURL: nil)
+    }
+
+    private func deleteItems(_ items: [URL], within roots: [URL]) throws -> [String] {
+        let rootPaths = roots.map { $0.resolvingSymlinksInPath().normalizedPath }
+        func root(of item: URL) -> String? {
+            let path = item.resolvingSymlinksInPath().normalizedPath
+            return rootPaths.first { path.hasPrefix($0 + "/") }
+        }
+        // Valida tudo antes de apagar qualquer coisa.
+        for item in items where root(of: item) == nil {
+            throw CleanerError.blockedBySafetyPolicy(item.path(percentEncoded: false))
+        }
+
+        var failures: [String] = []
+        for item in items {
+            if Task.isCancelled { break }
+            do {
+                let itemRoot = root(of: item)!
+                try FileManager.default.removeItem(at: item)
+                removeEmptyParents(of: item.resolvingSymlinksInPath(), upTo: itemRoot)
+            } catch {
+                failures.append(item.lastPathComponent)
+            }
+        }
+        return failures
+    }
+
+    /// Remove pastas que ficaram vazias (ignorando .DS_Store) entre `item` e a raiz da categoria.
+    private func removeEmptyParents(of item: URL, upTo rootPath: String) {
+        var parent = item.deletingLastPathComponent()
+        while parent.normalizedPath.hasPrefix(rootPath + "/") {
+            let contents = (try? FileManager.default.contentsOfDirectory(atPath: parent.path(percentEncoded: false))) ?? ["?"]
+            guard contents.allSatisfy({ $0 == ".DS_Store" }) else { return }
+            guard (try? FileManager.default.removeItem(at: parent)) != nil else { return }
+            parent = parent.deletingLastPathComponent()
+        }
     }
 
     private func removeContents(of directory: URL) -> [String] {

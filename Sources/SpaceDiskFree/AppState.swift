@@ -130,6 +130,8 @@ final class AppState {
             switch action.strategy {
             case .deleteContents:
                 ("\(size) serão apagados permanentemente.\(extra)", "Apagar", true)
+            case .deleteItems:
+                ("Serão apagados permanentemente.\(extra)", "Apagar", true)
             case .trashContents:
                 ("\(size) serão movidos para a Lixeira.", "Mover para Lixeira", false)
             case .emptyTrash:
