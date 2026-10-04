@@ -8,6 +8,7 @@ Space Disk Free is a macOS 14+ menu bar app (SwiftUI `MenuBarExtra`, `LSUIElemen
 
 - Don't write code comments (`//`, `///`, or `#` explanations in scripts, Makefile and YAML). Explain the reasoning in the PR description. `// swift-tools-version` in `Package.swift` and the shebangs are syntax, not comments.
 - Every change goes on a branch and is delivered as a pull request. Never commit directly to `main`.
+- Commit messages, PR titles and PR descriptions are written in English. The app UI stays in pt-BR.
 - Commits and PRs carry no Claude attribution (no `Co-Authored-By`, no "Generated with Claude Code").
 
 ## Commands
