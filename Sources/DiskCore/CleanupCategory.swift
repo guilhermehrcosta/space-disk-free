@@ -218,6 +218,7 @@ extension CleanupCategory {
         ]
 
         if let android = androidSystemImagesCategory(home: home) { categories.append(android) }
+        if let lmStudio = lmStudioModelsCategory(home: home) { categories.append(lmStudio) }
 
         if !dockerDesktopInstalled {
             categories.append(
@@ -234,6 +235,43 @@ extension CleanupCategory {
             )
         }
         return categories
+    }
+
+    private static func lmStudioModelsCategory(home: URL) -> CleanupCategory? {
+        let lmStudio = LMStudio(home: home)
+        let models = lmStudio.installedModels()
+        guard !models.isEmpty, lmStudio.modelsDirectory.normalizedPath.hasPrefix(home.normalizedPath + "/") else { return nil }
+
+        var actions = models.map { model in
+            let size = SizeCalculator.measure(model).bytes.formattedBytes
+            return CleanupAction(
+                id: "lmstudio-delete-" + LMStudio.displayName(of: model),
+                title: String(localized: "Delete \(model.lastPathComponent) (\(size))"),
+                detail: LMStudio.displayName(of: model) + "\n" + String(localized: "It can be downloaded again in LM Studio."),
+                strategy: .deleteItems([model])
+            )
+        }
+        if models.count > 1 {
+            actions.append(
+                CleanupAction(
+                    id: "lmstudio-delete-all",
+                    title: String(localized: "Delete all models"),
+                    detail: models.map { "• " + LMStudio.displayName(of: $0) }.joined(separator: "\n"),
+                    strategy: .deleteItems(models)
+                )
+            )
+        }
+        actions.append(CleanupAction(id: "lmstudio-review", title: String(localized: "Choose in Explore…"), strategy: .review))
+
+        return CleanupCategory(
+            id: "lmstudio-models",
+            title: String(localized: "LM Studio models"),
+            detail: String(
+                localized: "Downloaded language models (\(models.count) installed). Eject a model in LM Studio before deleting it."),
+            symbol: "brain",
+            paths: [lmStudio.modelsDirectory],
+            actions: actions
+        )
     }
 
     private static func androidSystemImagesCategory(home: URL) -> CleanupCategory? {

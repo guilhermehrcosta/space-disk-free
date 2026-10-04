@@ -297,12 +297,38 @@
         }
       }
     },
+    "Delete %@ (%@)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Delete %1$@ (%2$@)"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagar %1$@ (%2$@)"
+          }
+        }
+      }
+    },
     "Delete all images": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Apagar todas as imagens"
+          }
+        }
+      }
+    },
+    "Delete all models": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagar todos os modelos"
           }
         }
       }
@@ -399,6 +425,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Arquivos baixados. Revise os maiores itens."
+          }
+        }
+      }
+    },
+    "Downloaded language models (%lld installed). Eject a model in LM Studio before deleting it.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelos de linguagem baixados (%lld instalados). Ejete o modelo no LM Studio antes de apagá-lo."
           }
         }
       }
@@ -553,12 +589,32 @@
         }
       }
     },
+    "It can be downloaded again in LM Studio.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pode ser baixado de novo no LM Studio."
+          }
+        }
+      }
+    },
     "Items already deleted that still take up space.": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Itens já apagados que continuam ocupando espaço."
+          }
+        }
+      }
+    },
+    "LM Studio models": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelos do LM Studio"
           }
         }
       }

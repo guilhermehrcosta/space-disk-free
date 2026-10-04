@@ -356,3 +356,64 @@ struct LocalizationTests {
         }
     }
 }
+
+struct LMStudioTests {
+    func makeHome(modelsFolder: String? = nil) throws -> TemporaryDirectory {
+        let home = try TemporaryDirectory()
+        let fm = FileManager.default
+        let folder = modelsFolder ?? home.url.appending(path: ".lmstudio/models").path(percentEncoded: false)
+        try fm.createDirectory(at: home.url.appending(path: ".lmstudio"), withIntermediateDirectories: true)
+        try #"{"downloadsFolder": "\#(folder)"}"#.write(
+            to: home.url.appending(path: ".lmstudio/settings.json"), atomically: true, encoding: .utf8)
+        for model in ["lmstudio-community/gemma-GGUF", "lmstudio-community/qwen-GGUF", "bartowski/llama-GGUF"] {
+            let dir = URL(filePath: folder).appending(path: model)
+            try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+            try Data(repeating: 1, count: 20_000).write(to: dir.appending(path: "model.gguf"))
+        }
+        return home
+    }
+
+    @Test func readsTheModelsFolderFromSettings() throws {
+        let home = try TemporaryDirectory()
+        let custom = home.url.appending(path: "IA/modelos").path(percentEncoded: false)
+        let configured = try makeHome(modelsFolder: custom)
+        let lmStudio = LMStudio(home: configured.url)
+
+        #expect(lmStudio.modelsDirectory.normalizedPath == URL(filePath: custom).normalizedPath)
+        #expect(
+            lmStudio.installedModels().map(LMStudio.displayName) == [
+                "bartowski/llama-GGUF", "lmstudio-community/gemma-GGUF", "lmstudio-community/qwen-GGUF",
+            ])
+    }
+
+    @Test func deletingOneModelKeepsTheOthersAndPrunesEmptyPublishers() async throws {
+        let home = try makeHome()
+        let category = try #require(CleanupCategory.defaults(home: home.url).first { $0.id == "lmstudio-models" })
+        #expect(
+            category.actions.map(\.id) == [
+                "lmstudio-delete-bartowski/llama-GGUF", "lmstudio-delete-lmstudio-community/gemma-GGUF",
+                "lmstudio-delete-lmstudio-community/qwen-GGUF", "lmstudio-delete-all", "lmstudio-review",
+            ])
+
+        let report = try await Cleaner(policy: SafetyPolicy(home: home.url)).run(category, action: category.actions[0])
+
+        #expect(report.failures.isEmpty)
+        #expect(report.reclaimedBytes >= 20_000)
+        let lmStudio = LMStudio(home: home.url)
+        #expect(lmStudio.installedModels().map(LMStudio.displayName) == ["lmstudio-community/gemma-GGUF", "lmstudio-community/qwen-GGUF"])
+        #expect(!FileManager.default.fileExists(atPath: lmStudio.modelsDirectory.appending(path: "bartowski").path(percentEncoded: false)))
+    }
+
+    @Test func hidesModelsStoredOutsideHome() throws {
+        let outside = try TemporaryDirectory()
+        let home = try TemporaryDirectory()
+        let fm = FileManager.default
+        try fm.createDirectory(at: home.url.appending(path: ".lmstudio"), withIntermediateDirectories: true)
+        try #"{"downloadsFolder": "\#(outside.url.path(percentEncoded: false))"}"#
+            .write(to: home.url.appending(path: ".lmstudio/settings.json"), atomically: true, encoding: .utf8)
+        try fm.createDirectory(at: outside.url.appending(path: "pub/model"), withIntermediateDirectories: true)
+
+        #expect(LMStudio(home: home.url).installedModels().count == 1)
+        #expect(!CleanupCategory.defaults(home: home.url).contains { $0.id == "lmstudio-models" })
+    }
+}
