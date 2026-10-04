@@ -45,10 +45,28 @@ struct ExplorerView: View {
             if explorer.isLoading {
                 ProgressView().controlSize(.small)
             } else {
-                Text(explorer.totalSize.formattedBytes)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .monospacedDigit()
+                VStack(alignment: .trailing, spacing: 0) {
+                    Text(explorer.totalSize.formattedBytes)
+                        .font(.caption)
+                        .monospacedDigit()
+                    if let measuredAt = explorer.measuredAt {
+                        TimelineView(.periodic(from: .now, by: 30)) { context in
+                            if context.date.timeIntervalSince(measuredAt) > 60 {
+                                Text(measuredAt, format: .relative(presentation: .named))
+                                    .font(.caption2)
+                            }
+                        }
+                    }
+                }
+                .foregroundStyle(.secondary)
+
+                Button {
+                    explorer.reload()
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .buttonStyle(.borderless)
+                .help("Recalcular esta pasta")
             }
 
             Menu {

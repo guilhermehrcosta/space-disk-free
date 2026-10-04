@@ -87,14 +87,15 @@ final class AppState {
 
         let categories = categories
         scanTask = Task {
-            await withTaskGroup(of: (String, SizeResult).self) { group in
+            await withTaskGroup(of: (String, [(URL, TreeMeasurement)]).self) { group in
                 for category in categories {
-                    group.addTask { (category.id, SizeCalculator.measure(category.existingPaths)) }
+                    group.addTask { (category.id, Self.measure(category)) }
                 }
-                for await (id, result) in group {
-                    status[id]?.size = result.bytes
-                    status[id]?.permissionDenied = result.permissionDenied
-                    status[id]?.isScanning = false
+                for await (id, measurements) in group {
+                    guard !Task.isCancelled else { return }
+                    apply(measurements, to: id)
+                    // As mesmas pastas aparecem no explorador: aproveita a medição.
+                    for (url, measurement) in measurements { explorer.record(url, measurement) }
                 }
             }
             if !Task.isCancelled { lastScan = .now }
@@ -103,11 +104,20 @@ final class AppState {
 
     private func rescan(_ category: CleanupCategory) async {
         status[category.id]?.isScanning = true
-        let paths = category.existingPaths
-        let result = await Task.detached { SizeCalculator.measure(paths) }.value
-        status[category.id]?.size = result.bytes
-        status[category.id]?.permissionDenied = result.permissionDenied
-        status[category.id]?.isScanning = false
+        let measurements = await Task.detached { Self.measure(category) }.value
+        apply(measurements, to: category.id)
+        for (url, measurement) in measurements { explorer.contentsChanged(at: url, measurement) }
+    }
+
+    nonisolated private static func measure(_ category: CleanupCategory) -> [(URL, TreeMeasurement)] {
+        category.existingPaths.map { ($0, SizeCalculator.measureTree($0)) }
+    }
+
+    private func apply(_ measurements: [(URL, TreeMeasurement)], to id: String) {
+        let total = measurements.reduce(SizeResult()) { $0 + $1.1.total }
+        status[id]?.size = total.bytes
+        status[id]?.permissionDenied = total.permissionDenied
+        status[id]?.isScanning = false
     }
 
     // MARK: - Limpeza

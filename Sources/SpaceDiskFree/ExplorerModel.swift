@@ -3,6 +3,7 @@ import DiskCore
 import SwiftUI
 
 /// Navegação pelas maiores pastas: lista os filhos do diretório atual e mede cada subpasta em paralelo.
+/// Tamanhos medidos ficam em cache, então voltar ou entrar numa pasta já vista é instantâneo.
 @MainActor
 @Observable
 final class ExplorerModel {
@@ -11,6 +12,9 @@ final class ExplorerModel {
     private(set) var isLoading = false
     private(set) var errorMessage: String?
     private(set) var permissionDenied = false
+    /// Quando os tamanhos exibidos foram medidos; `nil` enquanto ainda medindo.
+    private(set) var measuredAt: Date?
+    private var cache = DirectorySizeCache()
     private var history: [URL] = []
     private var loadTask: Task<Void, Never>?
     private var hasLoaded = false
@@ -47,12 +51,37 @@ final class ExplorerModel {
         load(previous)
     }
 
+    /// Mede a pasta atual de novo, ignorando o cache.
     func reload() {
+        load(current, force: true)
+    }
+
+    /// Esquece todas as medições e mede a pasta atual de novo.
+    func reloadAll() {
+        cache.removeAll()
         load(current)
     }
 
     func remove(_ node: FileNode) {
         nodes.removeAll { $0.id == node.id }
+        cache.remove(node.url, knownBytes: node.size)
+    }
+
+    /// Medição feita fora do explorador (ex.: varredura das categorias) que pode ser reaproveitada.
+    func record(_ url: URL, _ measurement: TreeMeasurement) {
+        cache.record(url, measurement)
+    }
+
+    /// O conteúdo de `url` mudou (ex.: após uma limpeza) e agora ocupa `measurement`.
+    func contentsChanged(at url: URL, _ measurement: TreeMeasurement) {
+        cache.update(url, measurement.total)
+        cache.record(url, measurement)
+        if current.normalizedPath == url.normalizedPath
+            || current.normalizedPath.hasPrefix(url.normalizedPath + "/")
+            || url.normalizedPath.hasPrefix(current.normalizedPath + "/")
+        {
+            load(current)
+        }
     }
 
     func chooseFolder() {
@@ -65,21 +94,38 @@ final class ExplorerModel {
         if panel.runModal() == .OK, let url = panel.url { open(url) }
     }
 
-    private func load(_ url: URL) {
+    private func load(_ url: URL, force: Bool = false) {
         loadTask?.cancel()
         hasLoaded = true
         current = url
         nodes = []
         errorMessage = nil
         permissionDenied = false
+        measuredAt = nil
         isLoading = true
+        if force { cache.removeDescendants(of: url) }
 
         loadTask = Task {
             do {
-                let listing = try await Task.detached { try DirectoryLister.children(of: url) }.value
+                var listing = try await Task.detached { try DirectoryLister.children(of: url) }.value
                 guard !Task.isCancelled else { return }
+
+                var oldestCached: Date?
+                for index in listing.indices where listing[index].size == nil {
+                    guard let entry = cache.entry(for: listing[index].url) else { continue }
+                    listing[index].size = entry.result.bytes
+                    if entry.result.permissionDenied { permissionDenied = true }
+                    oldestCached = min(oldestCached ?? entry.measuredAt, entry.measuredAt)
+                }
                 nodes = Self.sorted(listing)
+
+                let needsMeasuring = listing.contains { $0.size == nil }
                 await measureDirectories(in: listing)
+                guard !Task.isCancelled else { return }
+
+                measuredAt = needsMeasuring ? .now : (oldestCached ?? .now)
+                let total = SizeResult(bytes: totalSize, permissionDenied: permissionDenied)
+                if force { cache.settle(url, total) } else if cache.entry(for: url) == nil { cache.record(url, total) }
             } catch {
                 guard !Task.isCancelled else { return }
                 let code = (error as NSError).underlyingErrors.first.map { ($0 as NSError).code }
@@ -95,22 +141,24 @@ final class ExplorerModel {
     private func measureDirectories(in listing: [FileNode]) async {
         var pending = listing.filter { $0.size == nil }.map(\.url).makeIterator()
 
-        await withTaskGroup(of: (URL, SizeResult).self) { group in
+        await withTaskGroup(of: (URL, TreeMeasurement).self) { group in
             func enqueueNext() {
                 guard let url = pending.next() else { return }
-                group.addTask { (url, SizeCalculator.measure(url)) }
+                group.addTask { (url, SizeCalculator.measureTree(url)) }
             }
             for _ in 0..<maxConcurrentMeasurements { enqueueNext() }
 
-            while let (url, result) = await group.next() {
+            while let (url, measurement) = await group.next() {
+                // Medição interrompida é parcial: não pode ir para a tela nem para o cache.
                 if Task.isCancelled {
                     group.cancelAll()
                     return
                 }
+                cache.record(url, measurement)
                 if let index = nodes.firstIndex(where: { $0.url == url }) {
-                    nodes[index].size = result.bytes
+                    nodes[index].size = measurement.total.bytes
                 }
-                if result.permissionDenied { permissionDenied = true }
+                if measurement.total.permissionDenied { permissionDenied = true }
                 nodes = Self.sorted(nodes)
                 enqueueNext()
             }

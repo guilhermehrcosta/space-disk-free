@@ -49,9 +49,7 @@ public struct SafetyPolicy: Sendable {
     }
 
     static func normalized(_ url: URL) -> String {
-        var path = url.standardizedFileURL.path(percentEncoded: false)
-        while path.count > 1, path.hasSuffix("/") { path.removeLast() }
-        return path
+        url.normalizedPath
     }
 
     /// `true` se `path` está estritamente dentro de `base`.

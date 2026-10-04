@@ -111,3 +111,94 @@ final class TemporaryDirectory {
         try? FileManager.default.removeItem(at: url)
     }
 }
+
+struct TreeMeasurementTests {
+    @Test func recordsImmediateSubfoldersInTheSamePass() throws {
+        let root = try TemporaryDirectory()
+        let fm = FileManager.default
+        try fm.createDirectory(at: root.url.appending(path: "a/inner"), withIntermediateDirectories: true)
+        try fm.createDirectory(at: root.url.appending(path: "b"), withIntermediateDirectories: true)
+        try Data(repeating: 1, count: 300_000).write(to: root.url.appending(path: "a/inner/x.bin"))
+        try Data(repeating: 1, count: 100_000).write(to: root.url.appending(path: "b/y.bin"))
+        try Data(repeating: 1, count: 50_000).write(to: root.url.appending(path: "top.bin"))
+
+        let tree = SizeCalculator.measureTree(root.url)
+
+        #expect(Set(tree.children.keys) == [root.url.appending(path: "a").normalizedPath, root.url.appending(path: "b").normalizedPath])
+        #expect(tree.children[root.url.appending(path: "a").normalizedPath] == SizeCalculator.measure(root.url.appending(path: "a")))
+        #expect(tree.children[root.url.appending(path: "b").normalizedPath] == SizeCalculator.measure(root.url.appending(path: "b")))
+        #expect(tree.total == SizeCalculator.measure(root.url))
+    }
+}
+
+struct DirectorySizeCacheTests {
+    let home = URL(filePath: "/Users/teste")
+    var library: URL { home.appending(path: "Library") }
+    var caches: URL { home.appending(path: "Library/Caches") }
+    var app: URL { home.appending(path: "Library/Caches/app") }
+
+    func filled() -> DirectorySizeCache {
+        var cache = DirectorySizeCache()
+        cache.record(home, SizeResult(bytes: 1000))
+        cache.record(library, SizeResult(bytes: 600))
+        cache.record(caches, SizeResult(bytes: 400))
+        cache.record(app, SizeResult(bytes: 300))
+        return cache
+    }
+
+    @Test func trailingSlashAndDotsHitTheSameEntry() {
+        let cache = filled()
+        #expect(cache.entry(for: URL(filePath: "/Users/teste/Library/", directoryHint: .isDirectory))?.result.bytes == 600)
+        #expect(cache.entry(for: URL(filePath: "/Users/teste/Library/Caches/../"))?.result.bytes == 600)
+    }
+
+    @Test func expiresOldEntries() {
+        var cache = DirectorySizeCache(maxAge: 60)
+        cache.record(library, SizeResult(bytes: 1), at: .now.addingTimeInterval(-120))
+        #expect(cache.entry(for: library) == nil)
+    }
+
+    @Test func removingAnItemDiscountsAncestorsAndDropsItsSubtree() {
+        var cache = filled()
+        cache.remove(caches, knownBytes: nil)
+
+        #expect(cache.entry(for: caches) == nil)
+        #expect(cache.entry(for: app) == nil)
+        #expect(cache.entry(for: library)?.result.bytes == 200)
+        #expect(cache.entry(for: home)?.result.bytes == 600)
+    }
+
+    @Test func removingAnUncachedFileUsesItsKnownSize() {
+        var cache = filled()
+        cache.remove(app.appending(path: "blob.bin"), knownBytes: 50)
+        #expect(cache.entry(for: app)?.result.bytes == 250)
+        #expect(cache.entry(for: home)?.result.bytes == 950)
+    }
+
+    @Test func removingWithUnknownSizeForgetsAncestors() {
+        var cache = filled()
+        cache.remove(app.appending(path: "folder"), knownBytes: nil)
+        #expect(cache.entry(for: app) == nil)
+        #expect(cache.entry(for: home) == nil)
+    }
+
+    @Test func updateReplacesContentsAndAdjustsAncestorsByTheDifference() {
+        var cache = filled()
+        cache.update(caches, SizeResult(bytes: 100))
+
+        #expect(cache.entry(for: caches)?.result.bytes == 100)
+        #expect(cache.entry(for: app) == nil)
+        #expect(cache.entry(for: library)?.result.bytes == 300)
+        #expect(cache.entry(for: home)?.result.bytes == 700)
+    }
+
+    @Test func rootFolderIsNotItsOwnAncestor() {
+        var cache = DirectorySizeCache()
+        cache.record(URL(filePath: "/"), SizeResult(bytes: 500))
+        cache.record(URL(filePath: "/Users"), SizeResult(bytes: 200))
+        cache.removeDescendants(of: URL(filePath: "/"))
+
+        #expect(cache.entry(for: URL(filePath: "/"))?.result.bytes == 500)
+        #expect(cache.entry(for: URL(filePath: "/Users")) == nil)
+    }
+}

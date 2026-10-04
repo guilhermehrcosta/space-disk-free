@@ -16,7 +16,7 @@ struct DiskHeaderView: View {
                     Button {
                         state.refreshVolume()
                         state.scanCategories()
-                        state.explorer.reload()
+                        state.explorer.reloadAll()
                     } label: {
                         Image(systemName: "arrow.clockwise")
                     }
